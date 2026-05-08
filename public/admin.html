@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — EchoRoots</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    body { background: var(--bg); min-height: 100vh; margin: 0; font-family: var(--font-sans); }
+
+    /* ── Login Screen ── */
+    #loginScreen {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 20px;
+    }
+    .login-card {
+      background: var(--bg-card); border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg); padding: 40px; width: 100%; max-width: 400px;
+      box-shadow: var(--shadow-md);
+    }
+    .login-card h2 { margin-bottom: 6px; font-family: var(--font-display); }
+    .login-card p  { color: var(--text-muted); font-size: 0.88rem; margin-bottom: 28px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display:block; margin-bottom:6px; font-size:0.85rem; font-weight:600; }
+    .form-group input { width:100%; padding:10px 14px; border:1.5px solid var(--border); background:var(--bg); border-radius:var(--radius-md); font-family:var(--font-sans); font-size:0.9rem; color:var(--text-primary); box-sizing:border-box; }
+    .form-group input:focus { outline:none; border-color:var(--saffron); }
+    .login-error { color:red; font-size:0.83rem; margin-top:10px; display:none; }
+
+    /* ── Admin Shell ── */
+    #adminShell { display: none; max-width: 1100px; margin: 0 auto; padding: 32px 20px; }
+
+    .admin-topbar {
+      display: flex; justify-content:space-between; align-items:center;
+      margin-bottom: 32px; flex-wrap: wrap; gap:12px;
+    }
+    .admin-topbar h2 { font-family:var(--font-display); font-size:1.6rem; }
+
+    /* Stats Grid */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap:16px; margin-bottom:36px; }
+    .stat-card {
+      background:var(--bg-card); border:1.5px solid var(--border);
+      border-radius:var(--radius-lg); padding:20px;
+      display:flex; flex-direction:column; gap:6px;
+    }
+    .stat-card .stat-icon { font-size:1.4rem; }
+    .stat-card .stat-value { font-size:2rem; font-weight:800; font-family:var(--font-ui); }
+    .stat-card .stat-label { font-size:0.78rem; color:var(--text-muted); font-family:var(--font-ui); }
+
+    /* Events List */
+    .section-title {
+      font-size:1.1rem; font-weight:700; font-family:var(--font-ui);
+      margin-bottom:16px; display:flex; align-items:center; gap:8px;
+    }
+    .event-admin-card {
+      background:var(--bg-card); border:1.5px solid var(--border);
+      border-radius:var(--radius-lg); padding:20px; margin-bottom:16px;
+    }
+    .event-admin-card h4 { margin:0 0 6px; font-family:var(--font-ui); font-size:1rem; }
+    .event-admin-card .meta { font-size:0.82rem; color:var(--text-muted); margin-bottom:12px; display:flex; gap:16px; flex-wrap:wrap; }
+    .action-row { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+    .btn-approve { background:#10B981; color:#fff; border:none; padding:8px 20px; border-radius:var(--radius-md); cursor:pointer; font-family:var(--font-ui); font-weight:600; font-size:0.85rem; }
+    .btn-reject  { background:none; color:#ef4444; border:1.5px solid #ef4444; padding:8px 20px; border-radius:var(--radius-md); cursor:pointer; font-family:var(--font-ui); font-weight:600; font-size:0.85rem; }
+    .btn-approve:hover { background:#059669; }
+    .btn-reject:hover  { background:rgba(239,68,68,0.08); }
+    .empty-note { color:var(--text-muted); text-align:center; padding:40px 0; font-size:0.9rem; }
+  </style>
+</head>
+<body>
+
+<!-- ── Login ── -->
+<div id="loginScreen">
+  <div class="login-card">
+    <h2>🛡️ Admin Login</h2>
+    <p>Sign in with your EchoRoots admin account to continue.</p>
+    <form id="loginForm" onsubmit="adminLogin(event)">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="adminEmail" placeholder="admin@echoroots.in" required />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="adminPassword" placeholder="••••••••" required />
+      </div>
+      <button type="submit" class="btn btn-primary w-full" id="loginBtn" style="width:100%; padding:11px; margin-top:8px;">
+        Sign In to Admin
+      </button>
+      <p class="login-error" id="loginError">Invalid credentials or insufficient permissions.</p>
+    </form>
+  </div>
+</div>
+
+<!-- ── Admin Shell ── -->
+<div id="adminShell">
+
+  <div class="admin-topbar">
+    <div>
+      <h2><i class="fa-solid fa-shield-halved" style="color:var(--saffron);"></i> Admin Panel</h2>
+      <div style="color:var(--text-muted); font-size:0.85rem;">EchoRoots Platform Management</div>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <span id="adminNameBadge" style="font-size:0.85rem; color:var(--text-muted);"></span>
+      <a href="events.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-arrow-left"></i> Back to Events</a>
+      <button onclick="adminLogout()" class="btn btn-secondary btn-sm" style="color:red; border-color:red;">
+        <i class="fa-solid fa-right-from-bracket"></i> Logout
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-value">—</div><div class="stat-label">Loading stats...</div></div>
+  </div>
+
+  <!-- Pending Events -->
+  <div class="section-title">
+    <i class="fa-solid fa-clock" style="color:var(--saffron);"></i> Pending Event Approvals
+    <span id="pendingBadge" style="background:rgba(249,115,22,0.12); color:var(--saffron); font-size:0.75rem; padding:2px 10px; border-radius:99px; font-weight:700;"></span>
+  </div>
+  <div id="pendingEventsList">
+    <div class="spinner" style="margin:40px auto;"></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="js/script.js"></script>
+<script>
+  // ── Auth ──────────────────────────────────────────────────────────
+  async function adminLogin(e) {
+    e.preventDefault();
+    const btn = document.getElementById('loginBtn');
+    btn.disabled = true; btn.textContent = 'Signing in...';
+    document.getElementById('loginError').style.display = 'none';
+
+    try {
+      const res = await apiFetch('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({
+          email: document.getElementById('adminEmail').value,
+          password: document.getElementById('adminPassword').value
+        })
+      });
+
+      if (res.success && res.data && res.data.token) {
+        const user = res.data.user;
+        if (user.role !== 'admin') {
+          document.getElementById('loginError').textContent = 'Access denied. Admin accounts only.';
+          document.getElementById('loginError').style.display = 'block';
+          return;
+        }
+        // Store token (reuse the app's storage key)
+        localStorage.setItem('er_token', res.data.token);
+        localStorage.setItem('er_user', JSON.stringify(user));
+        showAdminShell(user);
+      } else {
+        document.getElementById('loginError').textContent = res.message || 'Login failed.';
+        document.getElementById('loginError').style.display = 'block';
+      }
+    } catch (err) {
+      document.getElementById('loginError').textContent = 'Server error. Is the server running?';
+      document.getElementById('loginError').style.display = 'block';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Sign In to Admin';
+    }
+  }
+
+  function adminLogout() {
+    localStorage.removeItem('er_token');
+    localStorage.removeItem('er_user');
+    location.reload();
+  }
+
+  function showAdminShell(user) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminShell').style.display = 'block';
+    document.getElementById('adminNameBadge').textContent = 'Logged in as: ' + user.name;
+    loadStats();
+    loadPendingEvents();
+  }
+
+  // ── On page load: check if already logged in as admin ────────────
+  window.onload = function() {
+    const token = getToken();
+    const user = getUser();
+    if (token && user && user.role === 'admin') {
+      showAdminShell(user);
+    }
+  };
+
+  // ── Stats ─────────────────────────────────────────────────────────
+  async function loadStats() {
+    try {
+      const res = await apiFetch('/api/admin/stats', {
+        headers: { 'Authorization': 'Bearer ' + getToken() }
+      });
+      if (res.success) {
+        const d = res.data;
+        document.getElementById('statsGrid').innerHTML = `
+          <div class="stat-card">
+            <div class="stat-icon" style="color:var(--teal);">👥</div>
+            <div class="stat-value" style="color:var(--teal);">${d.totalUsers}</div>
+            <div class="stat-label">Total Users</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="color:var(--saffron);">📅</div>
+            <div class="stat-value" style="color:var(--saffron);">${d.totalEvents}</div>
+            <div class="stat-label">Total Events</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="color:#F59E0B;">⏳</div>
+            <div class="stat-value" style="color:#F59E0B;">${d.pendingEvents}</div>
+            <div class="stat-label">Pending</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="color:#10B981;">✅</div>
+            <div class="stat-value" style="color:#10B981;">${d.approvedEvents}</div>
+            <div class="stat-label">Approved</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="color:#ef4444;">❌</div>
+            <div class="stat-value" style="color:#ef4444;">${d.rejectedEvents}</div>
+            <div class="stat-label">Rejected</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="color:var(--pink);">💬</div>
+            <div class="stat-value" style="color:var(--pink);">${d.totalComments}</div>
+            <div class="stat-label">Comments</div>
+          </div>
+        `;
+      }
+    } catch (e) {
+      document.getElementById('statsGrid').innerHTML = '<p style="color:red;">Failed to load stats.</p>';
+    }
+  }
+
+  // ── Pending Events ────────────────────────────────────────────────
+  async function loadPendingEvents() {
+    try {
+      const res = await apiFetch('/api/admin/events/pending', {
+        headers: { 'Authorization': 'Bearer ' + getToken() }
+      });
+      if (res.success) {
+        const events = res.data;
+        document.getElementById('pendingBadge').textContent = events.length + ' pending';
+        const container = document.getElementById('pendingEventsList');
+        if (events.length === 0) {
+          container.innerHTML = '<p class="empty-note"><i class="fa-solid fa-circle-check" style="color:#10B981;"></i> No pending events. All clear!</p>';
+          return;
+        }
+        container.innerHTML = events.map(ev => `
+          <div class="event-admin-card" id="ev-admin-${ev._id}">
+            <h4>${ev.title}</h4>
+            <div class="meta">
+              <span><i class="fa-solid fa-tag"></i> ${ev.category}</span>
+              <span><i class="fa-solid fa-location-dot"></i> ${ev.location?.city || 'N/A'}</span>
+              <span><i class="fa-solid fa-calendar"></i> ${new Date(ev.date).toLocaleDateString('en-IN')}</span>
+              <span><i class="fa-solid fa-ticket"></i> ${ev.price || 'Free'}</span>
+              <span><i class="fa-solid fa-bolt"></i> ${ev.xpReward} XP</span>
+              <span><i class="fa-solid fa-user"></i> By: ${(ev.organizers || []).map(o => o.name).join(', ') || 'Unknown'}</span>
+            </div>
+            <p style="font-size:0.85rem; color:var(--text-secondary); line-height:1.5;">${ev.description}</p>
+            ${(ev.tags && ev.tags.length) ? `<div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap;">${ev.tags.map(t=>`<span style="padding:2px 10px;background:var(--bg-muted);border-radius:99px;font-size:0.73rem;color:var(--text-muted);">#${t}</span>`).join('')}</div>` : ''}
+            <div class="action-row">
+              <button class="btn-approve" onclick="approveEvent('${ev._id}')"><i class="fa-solid fa-check"></i> Approve & Publish</button>
+              <button class="btn-reject" onclick="rejectEvent('${ev._id}')"><i class="fa-solid fa-xmark"></i> Reject</button>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        document.getElementById('pendingEventsList').innerHTML = `<p style="color:red;">${res.message}</p>`;
+      }
+    } catch (e) {
+      document.getElementById('pendingEventsList').innerHTML = '<p style="color:red;">Failed to connect to server.</p>';
+    }
+  }
+
+  async function approveEvent(id) {
+    try {
+      const res = await apiFetch('/api/admin/events/' + id + '/approve', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + getToken() }
+      });
+      if (res.success) {
+        showToast('✅ Event approved and published!');
+        document.getElementById('ev-admin-' + id).remove();
+        loadStats();
+      } else {
+        showToast('Error: ' + res.message);
+      }
+    } catch (e) { showToast('Error approving event'); }
+  }
+
+  async function rejectEvent(id) {
+    const reason = prompt('Enter reason for rejection (will be stored):');
+    if (reason === null) return; // cancelled
+    try {
+      const res = await apiFetch('/api/admin/events/' + id + '/reject', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + getToken() },
+        body: JSON.stringify({ reason: reason || 'Does not meet community guidelines.' })
+      });
+      if (res.success) {
+        showToast('Event rejected.');
+        document.getElementById('ev-admin-' + id).remove();
+        loadStats();
+      } else {
+        showToast('Error: ' + res.message);
+      }
+    } catch (e) { showToast('Error rejecting event'); }
+  }
+</script>
+</body>
+</html>

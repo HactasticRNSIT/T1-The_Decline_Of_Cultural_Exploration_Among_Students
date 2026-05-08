@@ -9,7 +9,7 @@ const generateToken = (id) => {
 // @route POST /api/auth/register
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, interests } = req.body;
+    const { name, email, password, interests, role } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ success: false, message: 'Please provide all required fields' });
@@ -20,7 +20,7 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ success: false, message: 'User already exists with this email' });
     }
 
-    const user = await User.create({ name, email, password, interests: interests || [] });
+    const user = await User.create({ name, email, password, interests: interests || [], role: role || 'student' });
 
     res.status(201).json({
       success: true,
@@ -28,6 +28,7 @@ const registerUser = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        role: user.role,
         level: user.level,
         xp: user.xp,
         streak: user.streak,
@@ -75,6 +76,7 @@ const loginUser = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        role: user.role,
         level: user.level,
         xp: user.xp,
         streak: user.streak,

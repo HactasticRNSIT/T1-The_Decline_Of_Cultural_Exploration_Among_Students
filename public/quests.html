@@ -102,6 +102,7 @@
       transition: var(--transition);
       position: relative;
       overflow: hidden;
+      display: block;
     }
 
     .quest-card::before {
@@ -476,18 +477,77 @@
             </div>
           </div>
 
-          <button class="complete-btn ${isCompleted ? 'done' : 'active'}"
-            onclick="${isCompleted ? '' : `completeQuest('${q._id}', this)`}"
-            ${isCompleted ? 'disabled' : ''}>
-            ${isCompleted
-              ? '<i class="fa-solid fa-circle-check"></i> Completed'
-              : '<i class="fa-solid fa-bolt"></i> Complete Quest'}
-          </button>
+          <div style="display:flex; gap: 8px;">
+            <button class="complete-btn ${isCompleted ? 'done' : 'active'}"
+              style="flex: 1;"
+              onclick="${isCompleted ? '' : `completeQuest('${q._id}', this)`}"
+              ${isCompleted ? 'disabled' : ''}>
+              ${isCompleted
+                ? '<i class="fa-solid fa-circle-check"></i> Completed'
+                : '<i class="fa-solid fa-bolt"></i> Complete'}
+            </button>
+            ${!isCompleted ? `
+            <button class="complete-btn active" id="verify-btn-${q._id}" style="flex: 1; background: linear-gradient(135deg, var(--teal), var(--purple));" onclick="document.getElementById('photo-upload-${q._id}').click()">
+              <i class="fa-solid fa-camera"></i> AI Photo Verify
+            </button>
+            <input type="file" id="photo-upload-${q._id}" accept="image/*" style="display:none" onchange="verifyPhotoQuest('${q._id}', this)">
+            ` : ''}
+          </div>
         </div>
       `;
     }).join('');
 
     initScrollReveal();
+  }
+
+  async function verifyPhotoQuest(questId, inputEl) {
+    const file = inputEl.files[0];
+    if (!file) return;
+
+    const token = getToken();
+    if (!token) {
+      showToast('Sign in to complete quests');
+      return;
+    }
+
+    const btn = document.getElementById('verify-btn-' + questId);
+    if(btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;"></div>';
+    }
+
+    // Convert file to base64
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const base64 = e.target.result;
+      
+      try {
+        const data = await apiFetch('/api/quests/' + questId + '/verify-photo', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ imageBase64: base64 })
+        });
+
+        if (data.success) {
+          showToast(data.message);
+          // Auto complete visually
+          setTimeout(() => window.location.reload(), 1500);
+        } else {
+          showToast(data.message || 'AI rejected photo.');
+          if(btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-camera"></i> AI Photo Verify';
+          }
+        }
+      } catch (err) {
+        showToast('Error verifying photo.');
+        if(btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-camera"></i> AI Photo Verify';
+        }
+      }
+    };
+    reader.readAsDataURL(file);
   }
 
   async function completeQuest(questId, btn) {

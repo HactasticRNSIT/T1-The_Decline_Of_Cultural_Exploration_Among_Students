@@ -39,11 +39,18 @@ const eventSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  organizers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+  rejectionReason: { type: String, default: '' },
+  commentsOpen: { type: Boolean, default: true },
+  likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  dislikes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   price: {
     type: String,
     default: 'Free'
   },
   tags: [{ type: String }],
+  images: [{ type: String }], // Optional array of base64/url images
   savedBy: [
     { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
   ],

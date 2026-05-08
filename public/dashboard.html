@@ -94,6 +94,7 @@
           <i class="fa-solid fa-fire"></i>
           <span id="streakCount">0</span> day streak
         </div>
+        <button onclick="openTrivia()" class="btn btn-secondary btn-sm" style="background: linear-gradient(135deg, var(--purple), var(--pink)); color: white; border: none;"><i class="fa-solid fa-brain"></i> AI Trivia</button>
         <a href="quests.html" class="btn btn-primary btn-sm"><i class="fa-solid fa-bolt"></i> Daily Quest</a>
       </div>
     </div>
@@ -322,9 +323,66 @@
   </div>
 </main>
 
+<!-- Trivia Modal -->
+<div id="triviaModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:var(--bg-card); padding:30px; border-radius:var(--radius-lg); max-width:500px; width:90%; position:relative; box-shadow:var(--shadow-xl);">
+    <button onclick="closeTrivia()" style="position:absolute; top:15px; right:15px; background:none; border:none; font-size:1.2rem; cursor:pointer; color:var(--text-muted);"><i class="fa-solid fa-times"></i></button>
+    <h3 style="margin-bottom:15px; font-family:var(--font-display);"><i class="fa-solid fa-brain" style="color:var(--purple);"></i> Daily Cultural Trivia</h3>
+    <div id="triviaContent">
+      <div class="spinner" style="margin: 0 auto;"></div>
+      <p style="text-align:center; margin-top:10px;">Generating unique question using Gemini AI...</p>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
+<script src="js/script.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/dashboard.js"></script>
+<script>
+  let currentTrivia = null;
+  async function openTrivia() {
+    document.getElementById('triviaModal').style.display = 'flex';
+    document.getElementById('triviaContent').innerHTML = '<div class="spinner" style="margin: 0 auto;"></div><p style="text-align:center; margin-top:10px;">Generating unique question using Gemini AI...</p>';
+    
+    try {
+      const token = getToken();
+      if (!token) return showToast("Please login first.");
+      const res = await apiFetch('/api/ai/trivia', { method: 'POST', headers: {'Authorization': 'Bearer ' + token} });
+      if (res.success) {
+        currentTrivia = res.data;
+        let html = `<p style="font-size:1.1rem; font-weight:600; margin-bottom:20px; line-height: 1.5;">${currentTrivia.question}</p>`;
+        currentTrivia.options.forEach((opt, idx) => {
+          html += `<button onclick="answerTrivia(${idx})" class="btn btn-secondary w-full" style="margin-bottom:10px; justify-content:flex-start; text-align:left; padding:12px; font-weight:500;">${opt}</button>`;
+        });
+        document.getElementById('triviaContent').innerHTML = html;
+      } else {
+        document.getElementById('triviaContent').innerHTML = `<p style="color:red; text-align:center;">${res.message}</p>`;
+      }
+    } catch(e) {
+      document.getElementById('triviaContent').innerHTML = `<p style="color:red; text-align:center;">Error loading trivia.</p>`;
+    }
+  }
+
+  function closeTrivia() {
+    document.getElementById('triviaModal').style.display = 'none';
+  }
+
+  function answerTrivia(idx) {
+    if(idx === currentTrivia.correctIndex) {
+      document.getElementById('triviaContent').innerHTML = `<div style="text-align:center;"><i class="fa-solid fa-circle-check" style="font-size:3rem; color:#10B981; margin-bottom:15px;"></i><h3 style="color:#10B981; margin-bottom: 5px;">Correct!</h3><p style="color:var(--text-secondary);">You earned +20 XP!</p></div>`;
+      let user = getUser();
+      if (user) {
+        user.xp += 20;
+        localStorage.setItem('er_user', JSON.stringify(user));
+        const txp = document.getElementById('totalXP');
+        if (txp) txp.textContent = user.xp;
+      }
+    } else {
+      document.getElementById('triviaContent').innerHTML = `<div style="text-align:center;"><i class="fa-solid fa-circle-xmark" style="font-size:3rem; color:red; margin-bottom:15px;"></i><h3 style="color:red; margin-bottom: 5px;">Incorrect</h3><p style="color:var(--text-secondary);">The correct answer was: <strong>${currentTrivia.options[currentTrivia.correctIndex]}</strong></p></div>`;
+    }
+  }
+</script>
 </body>
 </html>

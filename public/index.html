@@ -212,8 +212,19 @@
     <li><a href="/events.html">Events</a></li>
   </ul>
   <div class="nav-actions">
-    <a href="login.html" class="btn btn-ghost btn-sm">Sign In</a>
-    <a href="register.html" class="btn btn-primary btn-sm">Get Started</a>
+    <a href="login.html" class="btn btn-ghost btn-sm" id="navLoginBtn">Sign In</a>
+    <a href="register.html" class="btn btn-primary btn-sm" id="navRegisterBtn">Get Started</a>
+    
+    <!-- User Menu (Hidden by default, shown via script.js) -->
+    <div id="navUserMenu" style="display:none;align-items:center;gap:12px;">
+      <a href="dashboard.html" class="btn btn-secondary btn-sm">
+        <i class="fa-solid fa-house"></i> Dashboard
+      </a>
+      <div style="display:flex;align-items:center;gap:8px;padding-left:8px;border-left:1px solid var(--border);">
+        <div id="navUserAvatar" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--saffron),var(--pink));display:flex;align-items:center;justify-content:center;color:white;font-family:var(--font-ui);font-weight:700;font-size:0.8rem;">?</div>
+        <span id="navUserName" style="font-family:var(--font-ui);font-size:0.85rem;font-weight:600;color:var(--text-primary);">User</span>
+      </div>
+    </div>
   </div>
 </nav>
 

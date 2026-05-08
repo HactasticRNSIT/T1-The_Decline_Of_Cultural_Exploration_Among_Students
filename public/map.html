@@ -152,8 +152,16 @@
       <button class="filter-pill" data-category="hidden_gem"><i class="fa-solid fa-gem"></i> Hidden</button>
     </div>
     <div class="flex items-center gap-2" style="margin-left:auto;">
-      <a href="dashboard.html" class="btn btn-ghost btn-sm"><i class="fa-solid fa-house"></i></a>
-      <a href="login.html" class="btn btn-primary btn-sm">Dashboard</a>
+      <a href="login.html" class="btn btn-primary btn-sm" id="navLoginBtn">Sign In</a>
+      
+      <!-- User Menu -->
+      <div id="navUserMenu" style="display:none;align-items:center;gap:12px;">
+        <a href="dashboard.html" class="btn btn-secondary btn-sm">
+          <i class="fa-solid fa-house"></i> Dashboard
+        </a>
+        <div id="navUserAvatar" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--saffron),var(--pink));display:flex;align-items:center;justify-content:center;color:white;font-family:var(--font-ui);font-weight:700;font-size:0.75rem;">?</div>
+        <span id="navUserName" style="display:none;"></span>
+      </div>
     </div>
   </div>
 
@@ -190,6 +198,7 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/script.js"></script>
 <script src="js/map.js"></script>
 </body>
 </html>
