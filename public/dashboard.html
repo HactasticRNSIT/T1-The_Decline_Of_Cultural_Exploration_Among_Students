@@ -45,43 +45,44 @@
 </head>
 <body>
 
-<!-- ══════ SIDEBAR ══════ -->
-<aside class="sidebar">
-  <div class="sidebar-header">
-    <a href="/" class="nav-logo">
-      <div class="nav-logo-icon"><i class="fa-solid fa-location-dot" style="color:white;font-size:0.9rem;"></i></div>
-      <span class="nav-logo-text">Echo<span>Roots</span></span>
-    </a>
-  </div>
-  <div class="sidebar-nav">
-    <div class="sidebar-section-label">Main</div>
-    <a href="dashboard.html" class="sidebar-nav-item active"><i class="fa-solid fa-house"></i> Dashboard</a>
-    <a href="map.html" class="sidebar-nav-item"><i class="fa-solid fa-map-location-dot"></i> Explore Map</a>
-    <a href="ai-guide.html" class="sidebar-nav-item"><i class="fa-solid fa-robot"></i> AI Guide</a>
-    <a href="quests.html" class="sidebar-nav-item"><i class="fa-solid fa-trophy"></i> Quests</a>
-    <a href="events.html" class="sidebar-nav-item"><i class="fa-solid fa-calendar-days"></i> Events</a>
-
-    <div class="sidebar-section-label">Account</div>
-    <a href="#" class="sidebar-nav-item"><i class="fa-solid fa-user"></i> Profile</a>
-    <a href="#" class="sidebar-nav-item"><i class="fa-solid fa-gear"></i> Settings</a>
-    <a href="#" class="sidebar-nav-item" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
-  </div>
-  <!-- User XP at bottom -->
-  <div style="padding:16px;border-top:1px solid var(--border);">
-    <div class="flex items-center gap-12" style="gap:10px;margin-bottom:10px;">
-      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--saffron),var(--pink));display:flex;align-items:center;justify-content:center;color:white;font-family:var(--font-ui);font-weight:700;font-size:0.9rem;" id="sidebarAvatar">A</div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-family:var(--font-ui);font-size:0.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="sidebarName">Loading...</div>
-        <div style="font-size:0.72rem;color:var(--text-muted);" id="sidebarLevel">Level 1</div>
-      </div>
+<div class="quests-layout">
+  <!-- ══════ SIDEBAR ══════ -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <a href="/" class="nav-logo">
+        <div class="nav-logo-icon"><i class="fa-solid fa-location-dot" style="color:white;font-size:0.9rem;"></i></div>
+        <span class="nav-logo-text">Echo<span>Roots</span></span>
+      </a>
     </div>
-    <div class="xp-bar"><div class="xp-bar-fill" id="sidebarXPBar" style="width:0%;"></div></div>
-    <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;" id="sidebarXPLabel">0 / 500 XP</div>
-  </div>
-</aside>
+    <div class="sidebar-nav">
+      <div class="sidebar-section-label">Main</div>
+      <a href="dashboard.html" class="sidebar-nav-item active"><i class="fa-solid fa-house"></i> <span>Dashboard</span></a>
+      <a href="map.html" class="sidebar-nav-item"><i class="fa-solid fa-map-location-dot"></i> <span>Explore Map</span></a>
+      <a href="ai-guide.html" class="sidebar-nav-item"><i class="fa-solid fa-robot"></i> <span>AI Guide</span></a>
+      <a href="quests.html" class="sidebar-nav-item"><i class="fa-solid fa-trophy"></i> <span>Quests</span></a>
+      <a href="events.html" class="sidebar-nav-item"><i class="fa-solid fa-calendar-days"></i> <span>Events</span></a>
 
-<!-- ══════ MAIN CONTENT ══════ -->
-<main class="dashboard-layout">
+      <div class="sidebar-section-label">Account</div>
+      <a href="profile.html" class="sidebar-nav-item"><i class="fa-solid fa-user"></i> <span>Profile</span></a>
+      <a href="admin.html" class="sidebar-nav-item admin-only" style="display:none;"><i class="fa-solid fa-lock"></i> <span>Admin Panel</span></a>
+      <a href="#" class="sidebar-nav-item" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span></a>
+    </div>
+    <!-- User XP at bottom -->
+    <div style="padding:16px;border-top:1px solid var(--border);">
+      <div class="flex items-center gap-12" style="gap:10px;margin-bottom:10px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--saffron),var(--pink));display:flex;align-items:center;justify-content:center;color:white;font-family:var(--font-ui);font-weight:700;font-size:0.9rem;" id="sidebarAvatar">A</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:var(--font-ui);font-size:0.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="sidebarName">Loading...</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);" id="sidebarLevel">Level 1</div>
+        </div>
+      </div>
+      <div class="xp-bar"><div class="xp-bar-fill" id="sidebarXPBar" style="width:0%;"></div></div>
+      <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;" id="sidebarXPLabel">0 / 500 XP</div>
+    </div>
+  </aside>
+
+  <!-- ══════ MAIN CONTENT ══════ -->
+  <main class="main-content chat-container" style="flex:1; min-width:0; background: var(--bg);">
   <!-- Header -->
   <div class="dash-header">
     <div class="flex justify-between items-center" style="flex-wrap:wrap;gap:12px;">
@@ -103,44 +104,40 @@
   <div class="dash-content">
     <!-- Stat Cards -->
     <div class="dash-grid">
-      <div class="stat-card">
+      <div class="stat-card reveal">
         <div class="stat-icon" style="background:rgba(249,115,22,0.1);color:var(--saffron);">
-          <i class="fa-solid fa-star"></i>
+          <i class="fa-solid fa-bolt"></i>
         </div>
         <div>
-          <div style="font-size:0.75rem;color:var(--text-muted);font-family:var(--font-ui);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Total XP</div>
-          <div style="font-family:var(--font-display);font-size:1.7rem;letter-spacing:-0.03em;" id="totalXP">0</div>
-          <div style="font-size:0.78rem;color:var(--text-muted);">+150 this week</div>
+          <div class="label-tag" style="color:var(--text-muted);">Total XP</div>
+          <div style="font-family:var(--font-display);font-size:1.8rem;letter-spacing:-0.03em;font-weight:800;" id="totalXP">0</div>
         </div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card reveal" style="animation-delay:0.1s;">
         <div class="stat-icon" style="background:rgba(124,58,237,0.1);color:var(--purple);">
           <i class="fa-solid fa-medal"></i>
         </div>
         <div>
-          <div style="font-size:0.75rem;color:var(--text-muted);font-family:var(--font-ui);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Level</div>
-          <div style="font-family:var(--font-display);font-size:1.7rem;letter-spacing:-0.03em;" id="userLevel">1</div>
-          <div style="font-size:0.78rem;color:var(--text-muted);">Cultural Explorer</div>
+          <div class="label-tag" style="color:var(--text-muted);">Level</div>
+          <div style="font-family:var(--font-display);font-size:1.8rem;letter-spacing:-0.03em;font-weight:800;" id="userLevel">1</div>
         </div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card reveal" style="animation-delay:0.2s;">
         <div class="stat-icon" style="background:rgba(6,182,212,0.1);color:var(--teal);">
           <i class="fa-solid fa-map-pin"></i>
         </div>
         <div>
-          <div style="font-size:0.75rem;color:var(--text-muted);font-family:var(--font-ui);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Places Visited</div>
-          <div style="font-family:var(--font-display);font-size:1.7rem;letter-spacing:-0.03em;">8</div>
-          <div style="font-size:0.78rem;color:var(--text-muted);">of 500+ places</div>
+          <div class="label-tag" style="color:var(--text-muted);">Visited</div>
+          <div style="font-family:var(--font-display);font-size:1.8rem;letter-spacing:-0.03em;font-weight:800;">8</div>
         </div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card reveal" style="animation-delay:0.3s;">
         <div class="stat-icon" style="background:rgba(236,72,153,0.1);color:var(--pink);">
           <i class="fa-solid fa-trophy"></i>
         </div>
         <div>
-          <div style="font-size:0.75rem;color:var(--text-muted);font-family:var(--font-ui);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Quests Done</div>
-          <div style="font-family:var(--font-display);font-size:1.7rem;letter-spacing:-0.03em;" id="questsDone">0</div>
-          <div style="font-size:0.78rem;color:var(--text-muted);">total completed</div>
+          <div class="label-tag" style="color:var(--text-muted);">Quests</div>
+          <div style="font-family:var(--font-display);font-size:1.8rem;letter-spacing:-0.03em;font-weight:800;" id="questsDone">0</div>
         </div>
       </div>
     </div>
@@ -205,11 +202,38 @@
           <div class="card-body" style="padding-bottom:8px;">
             <div class="flex justify-between items-center" style="margin-bottom:16px;">
               <h4>Cultural Stories</h4>
-              <div class="badge badge-teal"><i class="fa-solid fa-book-open"></i> New</div>
+              <button class="btn btn-primary btn-sm" onclick="openStoryModal()"><i class="fa-solid fa-plus"></i> Share Story</button>
             </div>
             <div class="story-scroll" id="storyScroll">
               <div style="color:var(--text-muted);padding:16px;"><div class="spinner"></div></div>
             </div>
+          </div>
+        </div>
+
+        <!-- Story Modal -->
+        <div id="storyModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+          <div style="background:var(--bg-card); padding:30px; border-radius:var(--radius-lg); max-width:600px; width:90%; position:relative; box-shadow:var(--shadow-xl);">
+            <button onclick="closeStoryModal()" style="position:absolute; top:15px; right:15px; background:none; border:none; font-size:1.2rem; cursor:pointer; color:var(--text-muted);"><i class="fa-solid fa-times"></i></button>
+            <h3 style="margin-bottom:15px; font-family:var(--font-display);">Share Your Cultural Story</h3>
+            <form id="storyForm" onsubmit="handleStorySubmit(event)">
+              <div class="form-group">
+                <label class="form-label">Title</label>
+                <input type="text" id="storyTitle" class="form-input" placeholder="e.g. My visit to Hampi" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Summary</label>
+                <input type="text" id="storySummary" class="form-input" placeholder="Short description..." required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Your Story</label>
+                <textarea id="storyContent" class="form-input" rows="5" placeholder="Share your experience..." required></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Tags (comma separated)</label>
+                <input type="text" id="storyTags" class="form-input" placeholder="e.g. heritage, travel, history" />
+              </div>
+              <button type="submit" class="btn btn-primary w-full">Post Story</button>
+            </form>
           </div>
         </div>
 
@@ -270,16 +294,16 @@
       <div style="display:flex;flex-direction:column;gap:24px;">
         <!-- Leaderboard preview -->
         <div class="card">
-          <div class="card-body" style="padding-bottom:8px;">
+          <div class="card-body" style="padding-bottom:16px;">
             <div class="flex justify-between items-center" style="margin-bottom:16px;">
-              <h4>Leaderboard</h4>
+              <h4 style="font-family:var(--font-ui);font-weight:700;">Leaderboard</h4>
               <div class="badge badge-saffron"><i class="fa-solid fa-fire"></i> Live</div>
             </div>
-            <div class="leaderboard-list" id="leaderboardList">
+            <div class="leaderboard-list" id="leaderboardList" style="margin-bottom:16px;">
               <div style="text-align:center;padding:24px;color:var(--text-muted);"><div class="spinner" style="margin:0 auto;"></div></div>
             </div>
-            <a href="#" class="btn btn-secondary w-full" style="margin-top:12px;margin-bottom:8px;font-size:0.85rem;">
-              <i class="fa-solid fa-ranking-star"></i> View Full Leaderboard
+            <a href="leaderboard.html" class="btn btn-secondary w-full" style="font-size:0.85rem;">
+              <i class="fa-solid fa-ranking-star"></i> View Hall of Fame
             </a>
           </div>
         </div>
@@ -287,41 +311,17 @@
         <!-- Recommendations -->
         <div class="card">
           <div class="card-body">
-            <h4 style="margin-bottom:16px;">Recommended For You</h4>
-            <div style="display:flex;flex-direction:column;gap:12px;">
-              <div style="display:flex;gap:12px;align-items:flex-start;">
-                <div style="width:44px;height:44px;border-radius:var(--radius-md);background:rgba(249,115,22,0.1);display:flex;align-items:center;justify-content:center;color:var(--saffron);flex-shrink:0;"><i class="fa-solid fa-landmark"></i></div>
-                <div>
-                  <div style="font-family:var(--font-ui);font-weight:600;font-size:0.88rem;">Mysore Palace</div>
-                  <div style="font-size:0.78rem;color:var(--text-muted);">Heritage site · Mysore, Karnataka</div>
-                  <div class="badge badge-saffron" style="font-size:0.65rem;margin-top:5px;">Recommended</div>
-                </div>
-              </div>
-              <div class="divider" style="margin:0;"></div>
-              <div style="display:flex;gap:12px;align-items:flex-start;">
-                <div style="width:44px;height:44px;border-radius:var(--radius-md);background:rgba(6,182,212,0.1);display:flex;align-items:center;justify-content:center;color:var(--teal);flex-shrink:0;"><i class="fa-solid fa-palette"></i></div>
-                <div>
-                  <div style="font-family:var(--font-ui);font-weight:600;font-size:0.88rem;">Warli Art Village</div>
-                  <div style="font-size:0.78rem;color:var(--text-muted);">Tribal art · Palghar, Maharashtra</div>
-                  <div class="badge badge-teal" style="font-size:0.65rem;margin-top:5px;">Near You</div>
-                </div>
-              </div>
-              <div class="divider" style="margin:0;"></div>
-              <div style="display:flex;gap:12px;align-items:flex-start;">
-                <div style="width:44px;height:44px;border-radius:var(--radius-md);background:rgba(124,58,237,0.1);display:flex;align-items:center;justify-content:center;color:var(--purple);flex-shrink:0;"><i class="fa-solid fa-calendar"></i></div>
-                <div>
-                  <div style="font-family:var(--font-ui);font-weight:600;font-size:0.88rem;">Bengaluru Heritage Walk</div>
-                  <div style="font-size:0.78rem;color:var(--text-muted);">Event · Sep 28, 2025</div>
-                  <div class="badge badge-purple" style="font-size:0.65rem;margin-top:5px;">Upcoming</div>
-                </div>
-              </div>
+            <h4 style="margin-bottom:16px;font-family:var(--font-ui);font-weight:700;">Recommended For You</h4>
+            <div id="recommendationsList" style="display:flex;flex-direction:column;gap:12px;">
+              <div class="spinner" style="margin:20px auto;"></div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</main>
+    </div>
+  </main>
+</div>
 
 <!-- Trivia Modal -->
 <div id="triviaModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
@@ -341,6 +341,7 @@
 <script src="js/auth.js"></script>
 <script src="js/dashboard.js"></script>
 <script>
+  if (typeof requireAuth === 'function') requireAuth();
   let currentTrivia = null;
   async function openTrivia() {
     document.getElementById('triviaModal').style.display = 'flex';

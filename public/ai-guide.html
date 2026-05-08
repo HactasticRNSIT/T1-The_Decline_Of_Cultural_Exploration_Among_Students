@@ -9,7 +9,7 @@
   <style>
     body { overflow: hidden; background: var(--bg); }
 
-    .ai-layout { display: grid; grid-template-columns: 280px 1fr 300px; height: 100svh; }
+    .ai-layout { display: grid; grid-template-columns: 260px 1fr 300px; height: 100svh; }
     @media(max-width:1200px) { .ai-layout { grid-template-columns: 1fr 280px; } .ai-topics { display: none; } }
     @media(max-width:768px) { .ai-layout { grid-template-columns: 1fr; } .ai-history { display: none; } }
 
@@ -235,32 +235,37 @@
 
 <div class="ai-layout">
   <!-- History sidebar -->
-  <aside class="ai-history">
-    <div class="ai-history-head">
-      <a href="/" class="nav-logo" style="margin-bottom:16px;display:flex;">
-        <div class="nav-logo-icon"><i class="fa-solid fa-location-dot" style="color:white;font-size:0.85rem;"></i></div>
-        <span class="nav-logo-text">Echo<span>Roots</span></span>
-      </a>
-      <button class="btn btn-primary w-full btn-sm" onclick="newChat()">
-        <i class="fa-solid fa-plus"></i> New Conversation
+  <aside class="sidebar ai-history">
+    <div class="sidebar-header">
+      <div class="flex items-center gap-3">
+        <a href="dashboard.html" class="back-btn" style="margin:0;"><i class="fa-solid fa-arrow-left"></i></a>
+        <a href="/" class="nav-logo">
+          <div class="nav-logo-icon"><i class="fa-solid fa-location-dot" style="color:white;font-size:0.85rem;"></i></div>
+          <span class="nav-logo-text">Echo<span>Roots</span></span>
+        </a>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-section-label">Actions</div>
+      <button class="btn btn-primary w-full btn-sm" onclick="newChat()" style="margin-bottom:16px;">
+        <i class="fa-solid fa-plus"></i> <span>New Chat</span>
       </button>
-    </div>
-    <div style="padding:16px;overflow-y:auto;flex:1;">
-      <div style="font-size:0.72rem;font-family:var(--font-ui);font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;">Recent</div>
-      <div class="hist-item"><i class="fa-regular fa-comment" style="margin-right:8px;color:var(--text-muted);"></i>Heritage sites near Bengaluru</div>
-      <div class="hist-item"><i class="fa-regular fa-comment" style="margin-right:8px;color:var(--text-muted);"></i>Warli art traditions</div>
-      <div class="hist-item"><i class="fa-regular fa-comment" style="margin-right:8px;color:var(--text-muted);"></i>Carnatic music origins</div>
-      <div class="hist-item"><i class="fa-regular fa-comment" style="margin-right:8px;color:var(--text-muted);"></i>Onam festival traditions</div>
-    </div>
-    <div style="padding:16px;border-top:1px solid var(--border);">
-      <a href="dashboard.html" class="btn btn-secondary w-full btn-sm">
-        <i class="fa-solid fa-house"></i> Dashboard
-      </a>
+
+      <a href="dashboard.html" class="sidebar-nav-item"><i class="fa-solid fa-house"></i> <span>Dashboard</span></a>
+      <a href="admin.html" class="sidebar-nav-item admin-only" style="display:none;"><i class="fa-solid fa-lock"></i> <span>Admin Panel</span></a>
+
+      <div class="sidebar-section-label">History</div>
+      <div id="chatHistory" style="flex:1;overflow-y:auto;">
+        <!-- Dynamically loaded -->
+      </div>
+
+      <div class="sidebar-section-label">Navigation</div>
+      <a href="dashboard.html" class="sidebar-nav-item"><i class="fa-solid fa-house"></i> <span>Dashboard</span></a>
     </div>
   </aside>
 
   <!-- Main chat -->
-  <main class="ai-main">
+  <main class="ai-main chat-container">
     <!-- Topbar -->
     <div class="ai-topbar">
       <div style="position:relative;">
@@ -320,6 +325,22 @@
   <aside class="ai-topics">
     <div style="font-family:var(--font-ui);font-size:0.78rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px;">Explore Topics</div>
 
+    <div class="topic-chip" onclick="sendSuggestion('Tell me about Vedic History and the Vedas')">
+      <i class="fa-solid fa-scroll" style="color:var(--saffron);width:18px;"></i>
+      Vedic History
+    </div>
+    <div class="topic-chip" onclick="sendSuggestion('Tell me about Indian History from ancient to modern eras')">
+      <i class="fa-solid fa-landmark-dome" style="color:var(--pink);width:18px;"></i>
+      Indian History
+    </div>
+    <div class="topic-chip" onclick="sendSuggestion('Tell me about the history and evolution of Indian languages')">
+      <i class="fa-solid fa-language" style="color:var(--teal);width:18px;"></i>
+      Language History
+    </div>
+    <div class="topic-chip" onclick="sendSuggestion('How can I research my family history or lineage in India?')">
+      <i class="fa-solid fa-tree" style="color:var(--purple);width:18px;"></i>
+      Family History
+    </div>
     <div class="topic-chip" onclick="sendSuggestion('Tell me about UNESCO World Heritage Sites in India')">
       <i class="fa-solid fa-landmark" style="color:var(--saffron);width:18px;"></i>
       UNESCO Sites

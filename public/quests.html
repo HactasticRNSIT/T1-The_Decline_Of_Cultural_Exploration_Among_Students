@@ -9,62 +9,7 @@
   <style>
     .quests-layout { display: flex; min-height: 100svh; }
 
-    /* Sidebar */
-    .sidebar {
-      width: 240px;
-      background: var(--bg-card);
-      border-right: 1px solid var(--border);
-      position: fixed;
-      top: 0; left: 0;
-      height: 100svh;
-      display: flex;
-      flex-direction: column;
-      z-index: 200;
-    }
-
-    .sidebar-logo {
-      height: 68px;
-      display: flex;
-      align-items: center;
-      padding: 0 20px;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-
-    .sidebar-nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
-
-    .sidebar-section-label {
-      font-family: var(--font-ui);
-      font-size: 0.68rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      padding: 0 8px;
-      margin: 16px 0 6px;
-    }
-
-    .sidebar-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 12px;
-      border-radius: var(--radius-md);
-      font-family: var(--font-ui);
-      font-size: 0.86rem;
-      font-weight: 500;
-      color: var(--text-secondary);
-      text-decoration: none;
-      transition: var(--transition);
-      margin-bottom: 2px;
-    }
-
-    .sidebar-item:hover { background: var(--bg-muted); color: var(--text-primary); }
-    .sidebar-item.active { background: rgba(249,115,22,0.08); color: var(--saffron); font-weight: 600; }
-    .sidebar-item .sidebar-icon { width: 18px; text-align: center; }
-
-    /* Main */
-    .main-content { margin-left: 240px; flex: 1; min-height: 100svh; }
+    .main-content { flex: 1; min-height: 100svh; }
 
     .page-topbar {
       height: 68px;
@@ -253,7 +198,7 @@
 
     @media (max-width: 768px) {
       .sidebar { display: none; }
-      .main-content { margin-left: 0; }
+      .main-content { flex: 1; }
       .quest-grid { grid-template-columns: 1fr; }
       .page-content { padding: 20px; }
     }
@@ -264,22 +209,27 @@
 <div class="quests-layout">
   <!-- Sidebar -->
   <aside class="sidebar">
-    <div class="sidebar-logo">
-      <a href="/" class="nav-logo">
-        <div class="nav-logo-icon"><i class="fa-solid fa-location-dot" style="color:white;font-size:0.85rem;"></i></div>
-        <span class="nav-logo-text">Echo<span>Roots</span></span>
-      </a>
+    <div class="sidebar-header">
+      <div class="flex items-center gap-3">
+        <a href="dashboard.html" class="back-btn" style="margin:0;"><i class="fa-solid fa-arrow-left"></i></a>
+        <a href="/" class="nav-logo">
+          <div class="nav-logo-icon"><i class="fa-solid fa-location-dot" style="color:white;font-size:0.85rem;"></i></div>
+          <span class="nav-logo-text">Echo<span>Roots</span></span>
+        </a>
+      </div>
     </div>
-    <nav class="sidebar-nav">
-      <div class="sidebar-section-label">Explore</div>
-      <a href="dashboard.html" class="sidebar-item"><span class="sidebar-icon"><i class="fa-solid fa-house"></i></span> Dashboard</a>
-      <a href="map.html" class="sidebar-item"><span class="sidebar-icon"><i class="fa-solid fa-map-location-dot"></i></span> Cultural Map</a>
-      <a href="ai-guide.html" class="sidebar-item"><span class="sidebar-icon"><i class="fa-solid fa-robot"></i></span> AI Guide</a>
+    <div class="sidebar-nav">
+      <div class="sidebar-section-label"><span>Main</span></div>
+      <a href="dashboard.html" class="sidebar-nav-item"><i class="fa-solid fa-house"></i> <span>Dashboard</span></a>
+      <a href="map.html" class="sidebar-nav-item"><i class="fa-solid fa-map-location-dot"></i> <span>Explore Map</span></a>
+      <a href="ai-guide.html" class="sidebar-nav-item"><i class="fa-solid fa-robot"></i> <span>AI Guide</span></a>
+      <a href="quests.html" class="sidebar-nav-item active"><i class="fa-solid fa-trophy"></i> <span>Quests</span></a>
+      <a href="events.html" class="sidebar-nav-item"><i class="fa-solid fa-calendar-days"></i> <span>Events</span></a>
 
-      <div class="sidebar-section-label">Progress</div>
-      <a href="quests.html" class="sidebar-item active"><span class="sidebar-icon"><i class="fa-solid fa-trophy"></i></span> Quests</a>
-      <a href="events.html" class="sidebar-item"><span class="sidebar-icon"><i class="fa-solid fa-calendar-days"></i></span> Events</a>
-    </nav>
+      <div class="sidebar-section-label"><span>Account</span></div>
+      <a href="profile.html" class="sidebar-nav-item"><i class="fa-solid fa-user"></i> <span>Profile</span></a>
+      <a href="#" class="sidebar-nav-item" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span></a>
+    </div>
     <div style="padding:16px;border-top:1px solid var(--border);">
       <div id="sidebarUser" style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--radius-md);">
         <div id="sidebarAvatar" style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--saffron),var(--pink));display:flex;align-items:center;justify-content:center;color:white;font-family:var(--font-ui);font-weight:700;font-size:0.85rem;flex-shrink:0;">?</div>

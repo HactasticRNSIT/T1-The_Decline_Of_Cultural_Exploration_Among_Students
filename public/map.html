@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
   <style>
     body, html { height: 100%; overflow: hidden; }
 
@@ -125,79 +126,198 @@
       100% { transform: scale(2.5); opacity: 0; }
     }
 
+    .directions-panel {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 340px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      box-shadow: var(--shadow-lg);
+      z-index: 501;
+      display: none;
+    }
+
+    .locate-btn {
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+      width: 44px;
+      height: 44px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 400;
+      box-shadow: var(--shadow-md);
+      color: var(--text-primary);
+    }
+    .locate-btn:hover { color: var(--saffron); }
+
+    .map-search-rail {
+      width: 280px;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+      padding: 24px 20px;
+      overflow-y: auto;
+      z-index: 400;
+      flex-shrink: 0;
+    }
+
+    .filter-pills-vertical {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .filter-pill {
+      background: none;
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: var(--transition);
+      width: 100%;
+      text-align: left;
+    }
+
+    .filter-pill i { width: 16px; text-align: center; font-size: 0.9rem; }
+    .filter-pill:hover { background: var(--bg-muted); color: var(--text-primary); }
+    .filter-pill.active { background: rgba(249,115,22,0.08); border-color: var(--saffron); color: var(--saffron); font-weight: 600; }
+
+    .map-body { display: flex; flex: 1; overflow: hidden; gap: 0; }
+
+    @media(max-width:1000px) {
+      .map-search-rail { width: 220px; padding: 20px 15px; }
+    }
+
     @media(max-width:768px) {
-      .map-sidebar { display: none; }
+      .map-search-rail { display: none; }
+      .directions-panel { width: calc(100% - 40px); top: 10px; right: 20px; }
     }
   </style>
 </head>
 <body>
 
 <div class="map-page">
-  <!-- Top bar -->
-  <div class="map-topbar">
-    <a href="/" class="nav-logo">
-      <div class="nav-logo-icon"><i class="fa-solid fa-location-dot" style="color:white;font-size:0.85rem;"></i></div>
-      <span class="nav-logo-text">Echo<span>Roots</span></span>
-    </a>
-    <div style="flex:1;max-width:400px;position:relative;">
-      <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.85rem;"></i>
-      <input type="text" class="map-search" placeholder="Search places, cities, categories..." id="mapSearchInput" />
-    </div>
-    <div class="filter-pills" style="flex-wrap:nowrap;">
-      <button class="filter-pill active" data-category="all">All</button>
-      <button class="filter-pill" data-category="heritage"><i class="fa-solid fa-landmark"></i> Heritage</button>
-      <button class="filter-pill" data-category="museum"><i class="fa-solid fa-building-columns"></i> Museums</button>
-      <button class="filter-pill" data-category="food"><i class="fa-solid fa-utensils"></i> Food</button>
-      <button class="filter-pill" data-category="festival"><i class="fa-solid fa-music"></i> Festivals</button>
-      <button class="filter-pill" data-category="hidden_gem"><i class="fa-solid fa-gem"></i> Hidden</button>
-    </div>
-    <div class="flex items-center gap-2" style="margin-left:auto;">
-      <a href="login.html" class="btn btn-primary btn-sm" id="navLoginBtn">Sign In</a>
-      
-      <!-- User Menu -->
-      <div id="navUserMenu" style="display:none;align-items:center;gap:12px;">
-        <a href="dashboard.html" class="btn btn-secondary btn-sm">
-          <i class="fa-solid fa-house"></i> Dashboard
-        </a>
-        <div id="navUserAvatar" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--saffron),var(--pink));display:flex;align-items:center;justify-content:center;color:white;font-family:var(--font-ui);font-weight:700;font-size:0.75rem;">?</div>
-        <span id="navUserName" style="display:none;"></span>
-      </div>
-    </div>
-  </div>
-
-  <div class="map-body">
-    <!-- Sidebar -->
-    <aside class="map-sidebar">
-      <div class="map-sidebar-head">
-        <div style="font-family:var(--font-ui);font-weight:700;font-size:0.95rem;margin-bottom:4px;">Cultural Places</div>
-        <div style="font-size:0.8rem;color:var(--text-muted);" id="placeCount">Loading...</div>
-      </div>
-      <div class="place-list" id="placeList">
-        <div style="text-align:center;padding:32px 16px;color:var(--text-muted);">
-          <div class="spinner" style="margin:0 auto 12px;"></div>
-          Loading places...
+  <div class="map-body map-page-layout">
+    <!-- Global Sidebar -->
+    <aside class="sidebar" id="mainSidebar">
+      <div class="sidebar-header">
+        <div class="flex items-center gap-3">
+          <a href="dashboard.html" class="back-btn" style="margin:0;"><i class="fa-solid fa-arrow-left"></i></a>
+          <a href="/" class="nav-logo">
+            <div class="nav-logo-icon"><i class="fa-solid fa-location-dot" style="color:white;font-size:0.85rem;"></i></div>
+            <span class="nav-logo-text">Echo<span>Roots</span></span>
+          </a>
         </div>
       </div>
+      <div class="sidebar-nav">
+        <div class="sidebar-section-label">Main</div>
+        <a href="dashboard.html" class="sidebar-nav-item"><i class="fa-solid fa-house"></i> <span>Dashboard</span></a>
+        <a href="map.html" class="sidebar-nav-item active"><i class="fa-solid fa-map-location-dot"></i> <span>Explore Map</span></a>
+        <a href="ai-guide.html" class="sidebar-nav-item"><i class="fa-solid fa-robot"></i> <span>AI Guide</span></a>
+        <a href="quests.html" class="sidebar-nav-item"><i class="fa-solid fa-trophy"></i> <span>Quests</span></a>
+        <a href="events.html" class="sidebar-nav-item"><i class="fa-solid fa-calendar-days"></i> <span>Events</span></a>
+
+        <div class="sidebar-section-label">Account</div>
+        <a href="profile.html" class="sidebar-nav-item"><i class="fa-solid fa-user"></i> <span>Profile</span></a>
+        <a href="admin.html" class="sidebar-nav-item admin-only" style="display:none;"><i class="fa-solid fa-lock"></i> <span>Admin Panel</span></a>
+        <a href="#" class="sidebar-nav-item" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span></a>
+      </div>
     </aside>
+
+    <!-- Map Search Rail (Vertical element between sidepanel & map) -->
+    <div class="map-search-rail">
+      <!-- Search View -->
+      <div class="map-search-container" id="searchContainer">
+        <div style="position:relative; margin-bottom: 20px;">
+          <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.85rem;"></i>
+          <input type="text" class="map-search" placeholder="Search..." id="mapSearchInput" style="height:42px; padding-left:40px;" />
+        </div>
+        
+        <div class="sidebar-section-label" style="padding-left:0; margin-bottom:12px;">Filters</div>
+        <div class="filter-pills-vertical">
+          <button class="filter-pill active" data-category="all"><i class="fa-solid fa-layer-group"></i> All</button>
+          <button class="filter-pill" data-category="heritage"><i class="fa-solid fa-landmark"></i> Heritage</button>
+          <button class="filter-pill" data-category="museum"><i class="fa-solid fa-building-columns"></i> Museums</button>
+          <button class="filter-pill" data-category="event"><i class="fa-solid fa-calendar-day"></i> Events</button>
+          <button class="filter-pill" data-category="quest"><i class="fa-solid fa-trophy"></i> Quests</button>
+        </div>
+
+        <div class="sidebar-section-label" style="padding-left:0; margin-top:30px; margin-bottom:12px;">Quick Places</div>
+        <div class="place-list" id="mapPlaceList" style="padding:0;">
+           <div style="padding:10px; color:var(--text-muted); font-size:0.8rem;">Loading...</div>
+        </div>
+      </div>
+
+      <!-- Directions View inside Rail (Hidden by default) -->
+      <div id="directionsRailContainer" style="display:none; padding: 10px 0;">
+        <div class="flex items-center gap-3" style="margin-bottom:24px;">
+          <button class="btn btn-ghost btn-xs" onclick="exitDirections()" style="margin:0;"><i class="fa-solid fa-arrow-left"></i></button>
+          <h4 style="margin:0; font-family:var(--font-display);">Get Directions</h4>
+        </div>
+        
+        <div class="flex flex-column gap-3">
+          <div style="position:relative;">
+            <i class="fa-solid fa-circle-dot" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--teal);font-size:0.85rem;"></i>
+            <input type="text" id="railStartInput" class="map-search" style="padding-left:40px; height:42px;" placeholder="Your location (GPS)" />
+          </div>
+          <div style="position:relative;">
+            <i class="fa-solid fa-location-dot" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--saffron);font-size:0.85rem;"></i>
+            <input type="text" id="railEndInput" class="map-search" style="padding-left:40px; height:42px;" disabled />
+          </div>
+        </div>
+        
+        <div style="margin-top:12px; font-size:0.75rem; color:var(--text-muted); font-style:italic;">
+          <i class="fa-solid fa-circle-info"></i> Tip: Click anywhere on the map to set your start location.
+        </div>
+        
+        <div id="railRoutingContainer" style="margin-top:24px; max-height:450px; overflow-y:auto; font-size:0.8rem;"></div>
+      </div>
+    </div>
 
     <!-- Map -->
     <div class="map-container">
       <div id="mainMap"></div>
+      
       <!-- Floating info card -->
-      <div class="map-floating-info" id="floatingInfo">
-        <div style="font-family:var(--font-ui);font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Selected Place</div>
-        <div style="font-family:var(--font-ui);font-weight:700;font-size:0.97rem;margin-bottom:4px;" id="infoName">—</div>
-        <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:12px;" id="infoMeta">—</div>
-        <div class="flex gap-2">
-          <a href="quests.html" class="btn btn-primary btn-sm" style="font-size:0.78rem;flex:1;justify-content:center;"><i class="fa-solid fa-trophy"></i> Quest</a>
-          <button class="btn btn-secondary btn-sm" style="font-size:0.78rem;"><i class="fa-solid fa-bookmark"></i></button>
+      <div class="map-floating-info" id="floatingInfo" style="width: 280px; padding: 12px;">
+        <div id="infoImageContainer" style="width:100%; height:150px; border-radius:var(--radius-md); background:var(--bg-muted); margin-bottom:12px; overflow:hidden; display:none;">
+          <img src="" id="infoImage" style="width:100%; height:100%; object-fit:cover;">
         </div>
+        <div style="font-family:var(--font-ui);font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;" id="infoLabel">Selected Place</div>
+        <div style="font-family:var(--font-ui);font-weight:700;font-size:1.1rem;margin-bottom:4px;" id="infoName">—</div>
+        <div style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:8px;" id="infoMeta">—</div>
+        <div style="font-size:0.85rem;color:var(--text-primary);margin-bottom:15px; line-height:1.5; max-height:100px; overflow-y:auto;" id="infoDetails">—</div>
+        
+        <div class="flex gap-2">
+          <button class="btn btn-primary btn-sm" id="directionsBtn" style="font-size:0.78rem;flex:1;justify-content:center;"><i class="fa-solid fa-route"></i> Directions</button>
+          <button class="btn btn-secondary btn-sm" id="savePlaceBtn" style="font-size:0.78rem;"><i class="fa-solid fa-bookmark"></i></button>
+        </div>
+      </div>
+
+
+      <!-- Current Location Button -->
+      <div class="locate-btn" id="locateBtn" title="Show my location">
+        <i class="fa-solid fa-location-crosshairs"></i>
       </div>
     </div>
   </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 <script src="js/script.js"></script>
 <script src="js/map.js"></script>
 </body>

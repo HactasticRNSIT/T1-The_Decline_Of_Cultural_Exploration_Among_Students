@@ -1,68 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Events — EchoRoots</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    .quests-layout { display: flex; min-height: 100svh; }
-
-    .sidebar {
-      width: 240px;
-      background: var(--bg-card);
-      border-right: 1px solid var(--border);
-      position: fixed;
-      top: 0; left: 0;
-      height: 100svh;
+    .quests-layout {
       display: flex;
-      flex-direction: column;
-      z-index: 200;
+      min-height: 100svh;
     }
 
-    .sidebar-logo {
-      height: 68px;
-      display: flex;
-      align-items: center;
-      padding: 0 20px;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
+    .main-content {
+      flex: 1;
+      padding: 32px;
+      overflow-y: auto;
     }
-
-    .sidebar-nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
-
-    .sidebar-section-label {
-      font-family: var(--font-ui);
-      font-size: 0.68rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      padding: 0 8px;
-      margin: 16px 0 6px;
-    }
-
-    .sidebar-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 12px;
-      border-radius: var(--radius-md);
-      font-family: var(--font-ui);
-      font-size: 0.86rem;
-      font-weight: 500;
-      color: var(--text-secondary);
-      text-decoration: none;
-      transition: var(--transition);
-      margin-bottom: 2px;
-    }
-
-    .sidebar-item:hover { background: var(--bg-muted); color: var(--text-primary); }
-    .sidebar-item.active { background: rgba(249,115,22,0.08); color: var(--saffron); font-weight: 600; }
-    .sidebar-item .sidebar-icon { width: 18px; text-align: center; }
-
-    .main-content { margin-left: 240px; flex: 1; min-height: 100svh; }
 
     .page-topbar {
       height: 68px;
@@ -77,7 +34,10 @@
       z-index: 100;
     }
 
-    .page-content { padding: 32px; max-width: 1100px; }
+    .page-content {
+      padding: 32px;
+      max-width: 1100px;
+    }
 
     /* Event card */
     .events-grid {
@@ -107,7 +67,9 @@
       position: relative;
     }
 
-    .event-card-body-inner { padding: 20px; }
+    .event-card-body-inner {
+      padding: 20px;
+    }
 
     .event-date-block {
       display: flex;
@@ -117,7 +79,8 @@
     }
 
     .event-cal {
-      width: 48px; height: 48px;
+      width: 48px;
+      height: 48px;
       border-radius: var(--radius-md);
       background: var(--bg-muted);
       border: 1px solid var(--border);
@@ -163,20 +126,38 @@
       color: var(--text-secondary);
     }
 
-    .event-countdown.soon { background: rgba(249,115,22,0.08); color: var(--saffron); }
-    .event-countdown.live { background: rgba(16,185,129,0.1); color: #10B981; }
+    .event-countdown.soon {
+      background: rgba(249, 115, 22, 0.08);
+      color: var(--saffron);
+    }
+
+    .event-countdown.live {
+      background: rgba(16, 185, 129, 0.1);
+      color: #10B981;
+    }
+
+    .event-interactions-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      font-family: var(--font-ui);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
 
     .event-actions {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding-top: 16px;
-      border-top: 1px solid var(--border);
-      margin-top: 16px;
+      margin-top: 12px;
     }
 
     .bookmark-btn {
-      width: 36px; height: 36px;
+      width: 36px;
+      height: 36px;
       border-radius: var(--radius-md);
       border: 1.5px solid var(--border);
       background: var(--bg-card);
@@ -190,8 +171,16 @@
       flex-shrink: 0;
     }
 
-    .bookmark-btn:hover { border-color: var(--saffron); color: var(--saffron); }
-    .bookmark-btn.saved { border-color: var(--saffron); color: var(--saffron); background: rgba(249,115,22,0.06); }
+    .bookmark-btn:hover {
+      border-color: var(--saffron);
+      color: var(--saffron);
+    }
+
+    .bookmark-btn.saved {
+      border-color: var(--saffron);
+      color: var(--saffron);
+      background: rgba(249, 115, 22, 0.06);
+    }
 
     .price-tag {
       display: inline-flex;
@@ -204,8 +193,15 @@
       font-weight: 700;
     }
 
-    .price-free { background: rgba(16,185,129,0.1); color: #10B981; }
-    .price-paid { background: rgba(249,115,22,0.1); color: var(--saffron); }
+    .price-free {
+      background: rgba(16, 185, 129, 0.1);
+      color: #10B981;
+    }
+
+    .price-paid {
+      background: rgba(249, 115, 22, 0.1);
+      color: var(--saffron);
+    }
 
     .filter-bar {
       display: flex;
@@ -228,188 +224,307 @@
       transition: var(--transition);
     }
 
-    .events-search:focus { border-color: var(--saffron); }
+    .events-search:focus {
+      border-color: var(--saffron);
+    }
 
     @media (max-width: 768px) {
-      .sidebar { display: none; }
-      .main-content { margin-left: 0; }
-      .events-grid { grid-template-columns: 1fr; }
-      .page-content { padding: 20px; }
+      .sidebar {
+        display: none;
+      }
+
+      .main-content {
+        margin-left: 0;
+      }
+
+      .events-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .page-content {
+        padding: 20px;
+      }
     }
   </style>
 </head>
+
 <body>
 
-<div class="quests-layout">
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <a href="/" class="nav-logo">
-        <div class="nav-logo-icon"><i class="fa-solid fa-location-dot" style="color:white;font-size:0.85rem;"></i></div>
-        <span class="nav-logo-text">Echo<span>Roots</span></span>
-      </a>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="sidebar-section-label">Explore</div>
-      <a href="dashboard.html" class="sidebar-item"><span class="sidebar-icon"><i class="fa-solid fa-house"></i></span> Dashboard</a>
-      <a href="map.html" class="sidebar-item"><span class="sidebar-icon"><i class="fa-solid fa-map-location-dot"></i></span> Cultural Map</a>
-      <a href="ai-guide.html" class="sidebar-item"><span class="sidebar-icon"><i class="fa-solid fa-robot"></i></span> AI Guide</a>
-      <div class="sidebar-section-label">Progress</div>
-      <a href="quests.html" class="sidebar-item"><span class="sidebar-icon"><i class="fa-solid fa-trophy"></i></span> Quests</a>
-      <a href="events.html" class="sidebar-item active"><span class="sidebar-icon"><i class="fa-solid fa-calendar-days"></i></span> Events</a>
-    </nav>
-    <div style="padding:16px;border-top:1px solid var(--border);">
-      <div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--radius-md);">
-        <div id="sidebarAvatar" style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--saffron),var(--pink));display:flex;align-items:center;justify-content:center;color:white;font-family:var(--font-ui);font-weight:700;font-size:0.85rem;flex-shrink:0;">?</div>
+  <div class="quests-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="flex items-center gap-3">
+          <a href="dashboard.html" class="back-btn" style="margin:0;"><i class="fa-solid fa-arrow-left"></i></a>
+          <a href="/" class="nav-logo">
+            <div class="nav-logo-icon"><i class="fa-solid fa-location-dot" style="color:white;font-size:0.85rem;"></i>
+            </div>
+            <span class="nav-logo-text">Echo<span>Roots</span></span>
+          </a>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-section-label">Main</div>
+        <a href="dashboard.html" class="sidebar-nav-item"><i class="fa-solid fa-house"></i> <span>Dashboard</span></a>
+        <a href="map.html" class="sidebar-nav-item"><i class="fa-solid fa-map-location-dot"></i> <span>Explore
+            Map</span></a>
+        <a href="ai-guide.html" class="sidebar-nav-item"><i class="fa-solid fa-robot"></i> <span>AI Guide</span></a>
+        <a href="quests.html" class="sidebar-nav-item"><i class="fa-solid fa-trophy"></i> <span>Quests</span></a>
+        <a href="events.html" class="sidebar-nav-item active"><i class="fa-solid fa-calendar-days"></i>
+          <span>Events</span></a>
+
+        <div class="sidebar-section-label">Account</div>
+        <a href="profile.html" class="sidebar-nav-item"><i class="fa-solid fa-user"></i> <span>Profile</span></a>
+        <a href="admin.html" class="sidebar-nav-item admin-only" style="display:none;"><i class="fa-solid fa-lock"></i>
+          <span>Admin Panel</span></a>
+        <a href="#" class="sidebar-nav-item" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i>
+          <span>Logout</span></a>
+      </nav>
+      <div style="padding:16px;border-top:1px solid var(--border);">
+        <div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--radius-md);">
+          <div id="sidebarAvatar"
+            style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--saffron),var(--pink));display:flex;align-items:center;justify-content:center;color:white;font-family:var(--font-ui);font-weight:700;font-size:0.85rem;flex-shrink:0;">
+            ?</div>
+          <div>
+            <div id="sidebarName" style="font-family:var(--font-ui);font-size:0.84rem;font-weight:600;">Guest</div>
+            <div id="sidebarLevel" style="font-size:0.75rem;color:var(--text-muted);">Level 1 Explorer</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <div class="page-topbar">
         <div>
-          <div id="sidebarName" style="font-family:var(--font-ui);font-size:0.84rem;font-weight:600;">Guest</div>
-          <div id="sidebarLevel" style="font-size:0.75rem;color:var(--text-muted);">Level 1 Explorer</div>
+          <h4 style="font-size:1rem;font-weight:700;">Events</h4>
+          <div style="font-size:0.78rem;color:var(--text-muted);">Discover and join cultural happenings near you</div>
         </div>
-      </div>
-    </div>
-  </aside>
-
-  <div class="main-content">
-    <div class="page-topbar">
-      <div>
-        <h4 style="font-size:1rem;font-weight:700;">Events</h4>
-        <div style="font-size:0.78rem;color:var(--text-muted);">Discover and join cultural happenings near you</div>
-      </div>
-      <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
-        <button onclick="openCreateEventModal()" class="btn btn-primary btn-sm" style="background:var(--teal);"><i class="fa-solid fa-plus"></i> Create Event</button>
-        <a href="admin.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-shield-halved"></i> Admin</a>
-        <a href="login.html" id="loginNavBtn" class="btn btn-primary btn-sm">Sign In</a>
-      </div>
-    </div>
-
-    <div class="page-content">
-      <!-- Filter bar -->
-      <div class="filter-bar reveal">
-        <div style="position:relative;">
-          <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.8rem;"></i>
-          <input type="text" class="events-search" id="eventsSearch" placeholder="Search events..." oninput="searchEvents(this.value)" />
-        </div>
-        <div class="filter-pills">
-          <button class="filter-pill active" data-cat="all" onclick="filterByCategory('all', this)">All</button>
-          <button class="filter-pill" data-cat="festival" onclick="filterByCategory('festival', this)"><i class="fa-solid fa-star-and-crescent"></i> Festival</button>
-          <button class="filter-pill" data-cat="workshop" onclick="filterByCategory('workshop', this)"><i class="fa-solid fa-chalkboard"></i> Workshop</button>
-          <button class="filter-pill" data-cat="exhibition" onclick="filterByCategory('exhibition', this)"><i class="fa-solid fa-image"></i> Exhibition</button>
-          <button class="filter-pill" data-cat="performance" onclick="filterByCategory('performance', this)"><i class="fa-solid fa-masks-theater"></i> Performance</button>
-          <button class="filter-pill" data-cat="walk" onclick="filterByCategory('walk', this)"><i class="fa-solid fa-person-walking"></i> Heritage Walk</button>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:15px;">
+          <div style="display:flex; background:var(--bg-muted); padding:3px; border-radius:var(--radius-md);">
+            <button onclick="changeSort('newest')" id="sortNewest" class="btn btn-ghost btn-xs active" style="font-size:0.7rem; padding:5px 10px;">Recently Uploaded</button>
+            <button onclick="changeSort('upcoming')" id="sortUpcoming" class="btn btn-ghost btn-xs" style="font-size:0.7rem; padding:5px 10px;">Upcoming</button>
+          </div>
+          <button onclick="openCreateEventModal()" class="btn btn-primary btn-sm" style="background:var(--teal);"><i
+              class="fa-solid fa-plus"></i> Create Event</button>
         </div>
       </div>
 
-      <div id="loadingState" style="text-align:center;padding:60px 20px;">
-        <div class="spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div>
-        <div style="color:var(--text-muted);font-family:var(--font-ui);font-size:0.88rem;">Loading events...</div>
-      </div>
+      <div class="page-content">
+        <!-- Filter bar -->
+        <div class="filter-bar reveal">
+          <div style="position:relative;">
+            <i class="fa-solid fa-magnifying-glass"
+              style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.8rem;"></i>
+            <input type="text" class="events-search" id="eventsSearch" placeholder="Search events..."
+              oninput="searchEvents(this.value)" />
+          </div>
+          <div class="filter-pills">
+            <button class="filter-pill active" data-cat="all" onclick="filterByCategory('all', this)">All</button>
+            <button class="filter-pill" data-cat="festival" onclick="filterByCategory('festival', this)"><i
+                class="fa-solid fa-star-and-crescent"></i> Festival</button>
+            <button class="filter-pill" data-cat="workshop" onclick="filterByCategory('workshop', this)"><i
+                class="fa-solid fa-chalkboard"></i> Workshop</button>
+            <button class="filter-pill" data-cat="exhibition" onclick="filterByCategory('exhibition', this)"><i
+                class="fa-solid fa-image"></i> Exhibition</button>
+            <button class="filter-pill" data-cat="performance" onclick="filterByCategory('performance', this)"><i
+                class="fa-solid fa-masks-theater"></i> Performance</button>
+            <button class="filter-pill" data-cat="walk" onclick="filterByCategory('walk', this)"><i
+                class="fa-solid fa-person-walking"></i> Heritage Walk</button>
+          </div>
+        </div>
 
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;" id="eventsHeader" style="display:none;">
-        <div style="font-size:0.85rem;color:var(--text-muted);" id="eventsCount"></div>
-      </div>
+        <div id="loadingState" style="text-align:center;padding:60px 20px;">
+          <div class="spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div>
+          <div style="color:var(--text-muted);font-family:var(--font-ui);font-size:0.88rem;">Loading events...</div>
+        </div>
 
-      <div class="events-grid" id="eventsGrid" style="display:none;"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;" id="eventsHeader"
+          style="display:none;">
+          <div style="font-size:0.85rem;color:var(--text-muted);" id="eventsCount"></div>
+        </div>
 
-      <div id="emptyState" style="display:none;text-align:center;padding:60px 20px;">
-        <i class="fa-solid fa-calendar-xmark" style="font-size:2.5rem;color:var(--border);margin-bottom:16px;"></i>
-        <div style="font-family:var(--font-ui);font-weight:600;color:var(--text-secondary);margin-bottom:6px;">No events found</div>
-        <div style="font-size:0.85rem;color:var(--text-muted);">Try a different filter or search term</div>
+        <div class="events-grid" id="eventsGrid" style="display:none;"></div>
+
+        <div id="emptyState" style="display:none;text-align:center;padding:60px 20px;">
+          <i class="fa-solid fa-calendar-xmark" style="font-size:2.5rem;color:var(--border);margin-bottom:16px;"></i>
+          <div style="font-family:var(--font-ui);font-weight:600;color:var(--text-secondary);margin-bottom:6px;">No
+            events found</div>
+          <div style="font-size:0.85rem;color:var(--text-muted);">Try a different filter or search term</div>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Create Event Modal -->
-<div id="createEventModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; padding:20px;">
-  <div style="background:var(--bg-card); padding:24px; border-radius:var(--radius-lg); width:100%; max-width:600px; position:relative; max-height:90vh; overflow-y:auto;">
-    <button onclick="closeCreateEventModal()" style="position:absolute; top:15px; right:15px; background:none; border:none; font-size:1.2rem; cursor:pointer;"><i class="fa-solid fa-times"></i></button>
-    <h3 style="margin-bottom:20px;">Create Community Event</h3>
-    <form id="createEventForm" onsubmit="submitNewEvent(event)">
-      <div style="margin-bottom:15px;"><label style="display:block;margin-bottom:5px;font-size:0.85rem;">Title</label><input type="text" id="ce_title" class="form-input" style="width:100%;padding:8px;" required></div>
-      <div style="margin-bottom:15px;"><label style="display:block;margin-bottom:5px;font-size:0.85rem;">Description</label><textarea id="ce_desc" class="form-input" style="width:100%;padding:8px;" rows="3" required></textarea></div>
-      <div style="display:flex; gap:15px; margin-bottom:15px;">
-        <div style="flex:1;"><label style="display:block;margin-bottom:5px;font-size:0.85rem;">Category</label><select id="ce_cat" class="form-input" style="width:100%;padding:8px;"><option value="festival">Festival</option><option value="workshop">Workshop</option><option value="exhibition">Exhibition</option><option value="performance">Performance</option><option value="walk">Heritage Walk</option><option value="other">Other</option></select></div>
-        <div style="flex:1;"><label style="display:block;margin-bottom:5px;font-size:0.85rem;">Date</label><input type="date" id="ce_date" class="form-input" style="width:100%;padding:8px;" required></div>
-      </div>
-      <div style="display:flex; gap:15px; margin-bottom:15px;">
-        <div style="flex:1;"><label style="display:block;margin-bottom:5px;font-size:0.85rem;">City</label><input type="text" id="ce_city" class="form-input" style="width:100%;padding:8px;" required></div>
-        <div style="flex:1;"><label style="display:block;margin-bottom:5px;font-size:0.85rem;">Place Name</label><input type="text" id="ce_place" class="form-input" style="width:100%;padding:8px;"></div>
-      </div>
-      <div style="display:flex; gap:15px; margin-bottom:15px;">
-        <div style="flex:1;"><label style="display:block;margin-bottom:5px;font-size:0.85rem;">Registration Fee</label><input type="text" id="ce_fee" class="form-input" style="width:100%;padding:8px;" placeholder="e.g. Free or ₹500" value="Free"></div>
-        <div style="flex:1;"><label style="display:block;margin-bottom:5px;font-size:0.85rem;">XP Reward</label><input type="number" id="ce_xp" class="form-input" style="width:100%;padding:8px;" value="100"></div>
-      </div>
-      <div style="margin-bottom:15px;"><label style="display:block;margin-bottom:5px;font-size:0.85rem;">Hashtags (comma separated)</label><input type="text" id="ce_tags" class="form-input" style="width:100%;padding:8px;" placeholder="e.g. dance, traditional, fun"></div>
-      <div style="margin-bottom:15px;"><label style="display:block;margin-bottom:5px;font-size:0.85rem;">Event Images</label><input type="file" id="ce_images" class="form-input" accept="image/*" multiple style="width:100%;padding:8px;"></div>
-      <div style="margin-bottom:15px;"><label style="display:block;margin-bottom:5px;font-size:0.85rem;">Co-organizers (User IDs, comma separated)</label><input type="text" id="ce_orgs" class="form-input" style="width:100%;padding:8px;" placeholder="Leave blank if none"></div>
-      <button type="submit" class="btn btn-primary w-full" id="ce_submitBtn" style="padding:10px;">Submit Event for Approval</button>
-    </form>
-  </div>
-</div>
-
-<!-- Comments Modal -->
-<div id="commentsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; padding:20px;">
-  <div style="background:var(--bg-card); padding:24px; border-radius:var(--radius-lg); width:100%; max-width:700px; position:relative; display:flex; flex-direction:column; max-height:90vh;">
-    <button onclick="closeCommentsModal()" style="position:absolute; top:15px; right:20px; background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted); z-index:10;"><i class="fa-solid fa-times"></i></button>
-    <h3 style="margin-bottom:20px; font-family:var(--font-display); font-size:1.5rem;">Comments</h3>
-    
-    <div id="commentsList" style="flex:1; overflow-y:auto; padding-right:10px; margin-bottom:20px; display:flex; flex-direction:column; gap:15px;">
-      <div class="spinner" style="margin:40px auto;"></div>
-    </div>
-    
-    <div id="commentFormContainer" style="border-top:1px solid var(--border); padding-top:15px;">
-      <form id="commentForm" onsubmit="submitComment(event)" style="display:flex; gap:10px;">
-        <input type="text" id="commentText" class="form-input" style="flex:1; padding:10px;" placeholder="Write a comment..." required>
-        <button type="button" onclick="document.getElementById('commentImage').click()" class="btn btn-secondary" style="padding:0 15px;"><i class="fa-solid fa-camera"></i></button>
-        <input type="file" id="commentImage" accept="image/*" style="display:none;" onchange="handleCommentImage(this)">
-        <button type="submit" class="btn btn-primary" id="commentSubmitBtn" style="padding:0 20px;"><i class="fa-solid fa-paper-plane"></i></button>
+  <!-- Create Event Modal -->
+  <div id="createEventModal"
+    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+    <div
+      style="background:var(--bg-card); padding:24px; border-radius:var(--radius-lg); width:100%; max-width:600px; position:relative; max-height:90vh; overflow-y:auto;">
+      <button onclick="closeCreateEventModal()"
+        style="position:absolute; top:15px; right:15px; background:none; border:none; font-size:1.2rem; cursor:pointer;"><i
+          class="fa-solid fa-times"></i></button>
+      <h3 style="margin-bottom:20px;">Create Community Event</h3>
+      <form id="createEventForm" onsubmit="submitNewEvent(event)">
+        <div style="margin-bottom:15px;"><label
+            style="display:block;margin-bottom:5px;font-size:0.85rem;">Title</label><input type="text" id="ce_title"
+            class="form-input" style="width:100%;padding:8px;" required></div>
+        <div style="margin-bottom:15px;"><label
+            style="display:block;margin-bottom:5px;font-size:0.85rem;">Description</label><textarea id="ce_desc"
+            class="form-input" style="width:100%;padding:8px;" rows="3" required></textarea></div>
+        <div style="display:flex; gap:15px; margin-bottom:15px;">
+          <div style="flex:1;"><label style="display:block;margin-bottom:5px;font-size:0.85rem;">Category</label><select
+              id="ce_cat" class="form-input" style="width:100%;padding:8px;">
+              <option value="festival">Festival</option>
+              <option value="workshop">Workshop</option>
+              <option value="exhibition">Exhibition</option>
+              <option value="performance">Performance</option>
+              <option value="walk">Heritage Walk</option>
+              <option value="other">Other</option>
+            </select></div>
+          <div style="flex:1;"><label style="display:block;margin-bottom:5px;font-size:0.85rem;">Date</label><input
+              type="date" id="ce_date" class="form-input" style="width:100%;padding:8px;" required></div>
+        </div>
+        <div style="display:flex; gap:15px; margin-bottom:15px;">
+          <div style="flex:1;"><label style="display:block;margin-bottom:5px;font-size:0.85rem;">City</label><input
+              type="text" id="ce_city" class="form-input" style="width:100%;padding:8px;" required></div>
+          <div style="flex:1;"><label style="display:block;margin-bottom:5px;font-size:0.85rem;">Place
+              Name</label><input type="text" id="ce_place" class="form-input" style="width:100%;padding:8px;"></div>
+        </div>
+        <div style="display:flex; gap:15px; margin-bottom:15px;">
+          <div style="flex:1;"><label style="display:block;margin-bottom:5px;font-size:0.85rem;">Registration
+              Fee</label><input type="text" id="ce_fee" class="form-input" style="width:100%;padding:8px;"
+              placeholder="e.g. Free or ₹500" value="Free"></div>
+          <div style="flex:1;"><label style="display:block;margin-bottom:5px;font-size:0.85rem;">XP Reward</label><input
+              type="number" id="ce_xp" class="form-input" style="width:100%;padding:8px;" value="100"></div>
+        </div>
+        <div style="margin-bottom:15px;"><label style="display:block;margin-bottom:5px;font-size:0.85rem;">Hashtags
+            (comma separated)</label><input type="text" id="ce_tags" class="form-input" style="width:100%;padding:8px;"
+            placeholder="e.g. dance, traditional, fun"></div>
+        <div style="margin-bottom:15px;">
+          <label style="display:block;margin-bottom:5px;font-size:0.85rem;">Pin Location on Map (Required for Map display)</label>
+          <div id="ce_map_container" style="position:relative; margin-bottom:10px;">
+            <div id="ce_map" style="height:280px; border-radius:var(--radius-md); border:1.5px solid var(--border);"></div>
+            <button type="button" id="ce_map_fs" onclick="toggleMapFullscreen()" 
+              style="position:absolute; bottom:12px; right:12px; z-index:1000; width:36px; height:36px; background:white; border:1px solid var(--border); border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-md); color:var(--text-primary); transition:var(--transition);">
+              <i class="fa-solid fa-expand"></i>
+            </button>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <div style="flex:1;">
+              <label style="font-size:0.7rem; color:var(--text-muted); display:block; margin-bottom:4px;">Latitude</label>
+              <input type="number" step="any" id="ce_lat" class="form-input" placeholder="Latitude" onchange="updateMarkerFromInputs()">
+            </div>
+            <div style="flex:1;">
+              <label style="font-size:0.7rem; color:var(--text-muted); display:block; margin-bottom:4px;">Longitude</label>
+              <input type="number" step="any" id="ce_lng" class="form-input" placeholder="Longitude" onchange="updateMarkerFromInputs()">
+            </div>
+          </div>
+        </div>
+        <div style="margin-bottom:15px;">
+          <label style="display:block;margin-bottom:5px;font-size:0.85rem;">Event Images</label>
+          <div id="imageDropZone"
+            style="border: 2px dashed var(--border); border-radius: var(--radius-md); padding: 25px; text-align: center; cursor: pointer; transition: var(--transition); background: var(--bg-muted);">
+            <i class="fa-solid fa-cloud-arrow-up"
+              style="font-size: 2.2rem; color: var(--text-muted); margin-bottom: 12px; display: block;"></i>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 500;">Click or Drag &
+              Drop</p>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">You can also paste images directly</p>
+            <input type="file" id="ce_images" accept="image/*" multiple style="display: none;">
+          </div>
+          <div id="imagePreview" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;"></div>
+        </div>
+        <div style="margin-bottom:15px;"><label style="display:block;margin-bottom:5px;font-size:0.85rem;">Co-organizers
+            (User IDs, comma separated)</label><input type="text" id="ce_orgs" class="form-input"
+            style="width:100%;padding:8px;" placeholder="Leave blank if none"></div>
+        <button type="submit" class="btn btn-primary w-full" id="ce_submitBtn" style="padding:10px;">Submit Event for
+          Approval</button>
       </form>
-      <div id="commentImagePreview" style="display:none; margin-top:10px; font-size:0.8rem; color:var(--saffron);"><i class="fa-solid fa-image"></i> Image attached</div>
     </div>
   </div>
-</div>
 
-<!-- Gallery Modal -->
-<div id="galleryModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; padding:20px;">
-  <div style="background:var(--bg-card); padding:24px; border-radius:var(--radius-lg); width:100%; max-width:900px; position:relative; display:flex; flex-direction:column; max-height:90vh;">
-    <button onclick="closeGallery()" style="position:absolute; top:15px; right:20px; background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted); z-index:10;"><i class="fa-solid fa-times"></i></button>
-    <h3 id="galleryTitle" style="margin-bottom:8px; font-family:var(--font-display); font-size:1.5rem;">Event Gallery</h3>
-    <p id="gallerySubtitle" style="color:var(--text-muted); margin-bottom:20px; font-size:0.9rem;">Photos from the location</p>
-    
-    <div style="overflow-y:auto; flex:1; padding-right:8px;">
-      <div id="galleryGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:16px;">
-        <!-- Images injected here -->
+  <!-- Comments Modal -->
+  <div id="commentsModal"
+    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+    <div
+      style="background:var(--bg-card); padding:24px; border-radius:var(--radius-lg); width:100%; max-width:700px; position:relative; display:flex; flex-direction:column; max-height:90vh;">
+      <button onclick="closeCommentsModal()"
+        style="position:absolute; top:15px; right:20px; background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted); z-index:10;"><i
+          class="fa-solid fa-times"></i></button>
+      <h3 style="margin-bottom:20px; font-family:var(--font-display); font-size:1.5rem;">Comments</h3>
+
+      <div id="commentsList"
+        style="flex:1; overflow-y:auto; padding-right:10px; margin-bottom:20px; display:flex; flex-direction:column; gap:15px;">
+        <div class="spinner" style="margin:40px auto;"></div>
+      </div>
+
+      <div id="commentFormContainer" style="border-top:1px solid var(--border); padding-top:15px;">
+        <form id="commentForm" onsubmit="submitComment(event)" style="display:flex; gap:10px;">
+          <input type="text" id="commentText" class="form-input" style="flex:1; padding:10px;"
+            placeholder="Write a comment..." required>
+          <button type="button" onclick="document.getElementById('commentImage').click()" class="btn btn-secondary"
+            style="padding:0 15px;"><i class="fa-solid fa-camera"></i></button>
+          <input type="file" id="commentImage" accept="image/*" style="display:none;"
+            onchange="handleCommentImage(this)">
+          <button type="submit" class="btn btn-primary" id="commentSubmitBtn" style="padding:0 20px;"><i
+              class="fa-solid fa-paper-plane"></i></button>
+        </form>
+        <div id="commentImagePreview" style="display:none; margin-top:10px; font-size:0.8rem; color:var(--saffron);"><i
+            class="fa-solid fa-image"></i> Image attached</div>
       </div>
     </div>
   </div>
-</div>
 
-<div class="toast" id="toast"></div>
+  <!-- Gallery Modal -->
+  <div id="galleryModal"
+    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+    <div
+      style="background:var(--bg-card); padding:24px; border-radius:var(--radius-lg); width:100%; max-width:900px; position:relative; display:flex; flex-direction:column; max-height:90vh;">
+      <button onclick="closeGallery()"
+        style="position:absolute; top:15px; right:20px; background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted); z-index:10;"><i
+          class="fa-solid fa-times"></i></button>
+      <h3 id="galleryTitle" style="margin-bottom:8px; font-family:var(--font-display); font-size:1.5rem;">Event Gallery
+      </h3>
+      <p id="gallerySubtitle" style="color:var(--text-muted); margin-bottom:20px; font-size:0.9rem;">Photos from the
+        location</p>
 
-<script src="js/script.js"></script>
-<script>
-  let allEvents = [];
-  let savedEventIds = [];
-  let currentCategory = 'all';
-  let searchTerm = '';
+      <div style="overflow-y:auto; flex:1; padding-right:8px;">
+        <div id="galleryGrid"
+          style="display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:16px;">
+          <!-- Images injected here -->
+        </div>
+      </div>
+    </div>
+  </div>
 
-  function openGallery(title, imagesJsonString) {
-    document.getElementById('galleryModal').style.display = 'flex';
-    document.getElementById('galleryTitle').textContent = title;
-    document.getElementById('gallerySubtitle').textContent = "Event Photos";
-    
-    const grid = document.getElementById('galleryGrid');
-    
-    try {
-      const imagesArray = JSON.parse(decodeURIComponent(imagesJsonString));
-      
-      if (imagesArray.length === 0) {
-        grid.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding:20px;">No images available for this event.</p>';
-        return;
-      }
+  <div class="toast" id="toast"></div>
 
-      let imagesHtml = '';
-      for(let i=0; i<imagesArray.length; i++) {
-        imagesHtml += `
+  <script src="js/script.js"></script>
+  <script>
+    let allEvents = [];
+    let savedEventIds = [];
+    let currentCategory = 'all';
+    let searchTerm = '';
+    let currentSort = 'newest';
+
+    function openGallery(title, imagesJsonString) {
+      document.getElementById('galleryModal').style.display = 'flex';
+      document.getElementById('galleryTitle').textContent = title;
+      document.getElementById('gallerySubtitle').textContent = "Event Photos";
+
+      const grid = document.getElementById('galleryGrid');
+      grid.innerHTML = '<div class="spinner" style="margin:20px auto;"></div>';
+
+      try {
+        const imagesArray = JSON.parse(decodeURIComponent(imagesJsonString));
+
+        if (imagesArray.length === 0) {
+          grid.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding:20px;">No images available for this event.</p>';
+          return;
+        }
+
+        let imagesHtml = '';
+        for (let i = 0; i < imagesArray.length; i++) {
+          imagesHtml += `
           <div style="border-radius:var(--radius-md); overflow:hidden; aspect-ratio:4/3; background:var(--bg-muted); position:relative; box-shadow:var(--shadow-sm);">
             <img src="${imagesArray[i]}" 
                  style="width:100%; height:100%; object-fit:cover; transition:transform 0.3s;" 
@@ -418,123 +533,139 @@
                  alt="${title} Photo" loading="lazy" />
           </div>
         `;
+        }
+        grid.innerHTML = imagesHtml;
+      } catch (e) {
+        grid.innerHTML = '<p style="color:red; text-align:center;">Failed to load images.</p>';
       }
-      grid.innerHTML = imagesHtml;
-    } catch(e) {
-      grid.innerHTML = '<p style="color:red; text-align:center;">Failed to load images.</p>';
-    }
-  }
-
-  function closeGallery() {
-    document.getElementById('galleryModal').style.display = 'none';
-  }
-
-  const categoryConfig = {
-    festival:    { color: '#F97316', label: 'Festival' },
-    workshop:    { color: '#06B6D4', label: 'Workshop' },
-    exhibition:  { color: '#7C3AED', label: 'Exhibition' },
-    performance: { color: '#EC4899', label: 'Performance' },
-    walk:        { color: '#F59E0B', label: 'Heritage Walk' },
-    other:       { color: '#94A3B8', label: 'Other' }
-  };
-
-  function init() {
-    const user = getUser();
-    if (user) {
-      document.getElementById('sidebarName').textContent = user.name;
-      document.getElementById('sidebarAvatar').textContent = user.name.charAt(0).toUpperCase();
-      document.getElementById('sidebarLevel').textContent = 'Level ' + user.level + ' Explorer';
-      document.getElementById('loginNavBtn').style.display = 'none';
-      savedEventIds = user.savedEvents || [];
-      updateSavedCount();
-    }
-    loadEvents();
-    initScrollReveal();
-  }
-
-  async function loadEvents() {
-    try {
-      const data = await apiFetch('/api/events?t=' + Date.now());
-      allEvents = data.data || [];
-      renderEvents(allEvents);
-    } catch (e) {
-      document.getElementById('loadingState').innerHTML = '<div style="color:var(--text-muted);">Failed to load events. <button onclick="loadEvents()" style="color:var(--saffron);background:none;border:none;cursor:pointer;font-family:var(--font-ui);">Retry</button></div>';
-    }
-  }
-
-  function filterByCategory(cat, btn) {
-    currentCategory = cat;
-    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    applyFilters();
-  }
-
-  function searchEvents(val) {
-    searchTerm = val.toLowerCase();
-    applyFilters();
-  }
-
-  function applyFilters() {
-    let filtered = allEvents;
-    if (currentCategory !== 'all') filtered = filtered.filter(e => e.category === currentCategory);
-    if (searchTerm) filtered = filtered.filter(e =>
-      e.title.toLowerCase().includes(searchTerm) ||
-      (e.description || '').toLowerCase().includes(searchTerm) ||
-      (e.location && e.location.city || '').toLowerCase().includes(searchTerm)
-    );
-    renderEvents(filtered);
-  }
-
-  function getCountdown(date) {
-    const now = new Date();
-    const d = new Date(date);
-    const diff = d - now;
-    if (diff < 0) return { label: 'Past Event', cls: '' };
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    if (days === 0) return { label: 'Today', cls: 'live' };
-    if (days <= 7) return { label: 'In ' + days + ' day' + (days > 1 ? 's' : ''), cls: 'soon' };
-    if (days <= 30) return { label: 'In ' + days + ' days', cls: 'soon' };
-    const weeks = Math.floor(days / 7);
-    if (weeks < 8) return { label: 'In ' + weeks + ' week' + (weeks > 1 ? 's' : ''), cls: '' };
-    const months = Math.floor(days / 30);
-    return { label: 'In ' + months + ' month' + (months > 1 ? 's' : ''), cls: '' };
-  }
-
-  function renderEvents(events) {
-    const grid = document.getElementById('eventsGrid');
-    const loading = document.getElementById('loadingState');
-    const empty = document.getElementById('emptyState');
-    const header = document.getElementById('eventsHeader');
-    const count = document.getElementById('eventsCount');
-
-    loading.style.display = 'none';
-    header.style.display = 'flex';
-    count.textContent = events.length + ' event' + (events.length !== 1 ? 's' : '') + ' found';
-
-    if (!events.length) {
-      grid.style.display = 'none';
-      empty.style.display = 'block';
-      return;
     }
 
-    empty.style.display = 'none';
-    grid.style.display = 'grid';
+    function closeGallery() {
+      document.getElementById('galleryModal').style.display = 'none';
+    }
 
-    grid.innerHTML = events.map(ev => {
-      const cat = categoryConfig[ev.category] || categoryConfig.other;
-      const d = new Date(ev.date);
-      const month = d.toLocaleString('en-IN', { month: 'short' }).toUpperCase();
-      const day = d.getDate();
-      const countdown = getCountdown(ev.date);
-      const isSaved = savedEventIds.includes(ev._id);
-      const isFree = !ev.price || ev.price === 'Free';
-      const tags = (ev.tags || []).slice(0, 3);
+    const categoryConfig = {
+      festival: { color: '#F97316', label: 'Festival' },
+      workshop: { color: '#06B6D4', label: 'Workshop' },
+      exhibition: { color: '#7C3AED', label: 'Exhibition' },
+      performance: { color: '#EC4899', label: 'Performance' },
+      walk: { color: '#F59E0B', label: 'Heritage Walk' },
+      other: { color: '#94A3B8', label: 'Other' }
+    };
+
+    function init() {
+      const user = getUser();
+      if (user) {
+        document.getElementById('sidebarName').textContent = user.name;
+        document.getElementById('sidebarAvatar').textContent = user.name.charAt(0).toUpperCase();
+        document.getElementById('sidebarLevel').textContent = 'Level ' + user.level + ' Explorer';
+        const loginBtn = document.getElementById('loginNavBtn');
+        if (loginBtn) loginBtn.style.display = 'none';
+        savedEventIds = user.savedEvents || [];
+        updateSavedCount();
+      }
+      loadEvents();
+      initScrollReveal();
+    }
+
+    async function loadEvents() {
+      try {
+        const data = await apiFetch('/api/events?t=' + Date.now());
+        allEvents = data.data || [];
+        applyFilters(); // Use applyFilters instead of direct render
+      } catch (e) {
+        document.getElementById('loadingState').innerHTML = '<div style="color:var(--text-muted);">Failed to load events. <button onclick="loadEvents()" style="color:var(--saffron);background:none;border:none;cursor:pointer;font-family:var(--font-ui);">Retry</button></div>';
+      }
+    }
+
+    function changeSort(sort) {
+      currentSort = sort;
+      document.getElementById('sortNewest').classList.toggle('active', sort === 'newest');
+      document.getElementById('sortUpcoming').classList.toggle('active', sort === 'upcoming');
+      applyFilters();
+    }
+
+    function filterByCategory(cat, btn) {
+      currentCategory = cat;
+      document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      applyFilters();
+    }
+
+    function searchEvents(val) {
+      searchTerm = val.toLowerCase();
+      applyFilters();
+    }
+
+    function applyFilters() {
+      let filtered = [...allEvents];
+      if (currentCategory !== 'all') filtered = filtered.filter(e => e.category === currentCategory);
+      if (searchTerm) filtered = filtered.filter(e =>
+        e.title.toLowerCase().includes(searchTerm) ||
+        (e.description || '').toLowerCase().includes(searchTerm) ||
+        (e.location && e.location.city || '').toLowerCase().includes(searchTerm)
+      );
       
-      const heroImage = (ev.images && ev.images.length > 0) ? ev.images[0] : (ev.image || 'images/default-event.jpg');
-      // Pass the entire images array as a JSON string to openGallery safely
-      const imagesJson = encodeURIComponent(JSON.stringify(ev.images || []));
+      // Apply Sorting
+      if (currentSort === 'newest') {
+        filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      } else {
+        filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+      }
+      
+      renderEvents(filtered);
+    }
 
-      return `
+    function getCountdown(date) {
+      const now = new Date();
+      const d = new Date(date);
+      const diff = d - now;
+      if (diff < 0) return { label: 'Past Event', cls: '' };
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      if (days === 0) return { label: 'Today', cls: 'live' };
+      if (days <= 7) return { label: 'In ' + days + ' day' + (days > 1 ? 's' : ''), cls: 'soon' };
+      if (days <= 30) return { label: 'In ' + days + ' days', cls: 'soon' };
+      const weeks = Math.floor(days / 7);
+      if (weeks < 8) return { label: 'In ' + weeks + ' week' + (weeks > 1 ? 's' : ''), cls: '' };
+      const months = Math.floor(days / 30);
+      return { label: 'In ' + months + ' month' + (months > 1 ? 's' : ''), cls: '' };
+    }
+
+    function renderEvents(events) {
+      const grid = document.getElementById('eventsGrid');
+      const loading = document.getElementById('loadingState');
+      const empty = document.getElementById('emptyState');
+      const header = document.getElementById('eventsHeader');
+      const count = document.getElementById('eventsCount');
+
+      loading.style.display = 'none';
+      header.style.display = 'flex';
+      count.textContent = events.length + ' event' + (events.length !== 1 ? 's' : '') + ' found';
+
+      if (!events.length) {
+        grid.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+      }
+
+      empty.style.display = 'none';
+      grid.style.display = 'grid';
+
+      grid.innerHTML = events.map(ev => {
+        const cat = categoryConfig[ev.category] || categoryConfig.other;
+        const d = new Date(ev.date);
+        const month = d.toLocaleString('en-IN', { month: 'short' }).toUpperCase();
+        const day = d.getDate();
+        const countdown = getCountdown(ev.date);
+        const isSaved = savedEventIds.includes(ev._id);
+        const isFree = !ev.price || ev.price === 'Free';
+        const tags = (ev.tags || []).slice(0, 3);
+
+        const heroImage = (ev.images && ev.images.length > 0) ? ev.images[0] : (ev.image || 'images/default-event.jpg');
+        // Pass the entire images array as a JSON string to openGallery safely
+        const imagesJson = encodeURIComponent(JSON.stringify(ev.images || []));
+
+        return `
         <div class="event-card-new reveal" id="ecard-${ev._id}">
           <div class="event-card-header-bar" style="background-color:${cat.color}; background-image:url('${heroImage}'); height: 140px; background-size: cover; background-position: center; position: relative;">
              <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);"></div>
@@ -556,7 +687,7 @@
 
             <p style="font-size:0.83rem;color:var(--text-secondary);line-height:1.55;margin-bottom:12px;">${ev.description || ''}</p>
 
-            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:0.8rem;color:var(--text-muted);">
+            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:0.8rem;color:var(--text-muted);margin-bottom:8px;">
               ${ev.location ? `<div style="display:flex;align-items:center;gap:5px;">
                 <i class="fa-solid fa-location-dot" style="color:${cat.color};"></i>
                 <span>${ev.location.name ? ev.location.name + ', ' : ''}${ev.location.city || ''}</span>
@@ -566,200 +697,287 @@
               </div>
             </div>
 
+            <div style="font-size:0.72rem; color:var(--text-muted); margin-bottom:12px;">
+              <i class="fa-solid fa-user-group"></i> 
+              ${[
+            ...(ev.organizers || []).map(o => o.name),
+            ...(ev.coOrganizerNames || [])
+          ].join(', ') || 'Community Member'}
+            </div>
+
             ${tags.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;">
               ${tags.map(t => `<span style="padding:3px 8px;background:var(--bg-muted);border-radius:var(--radius-full);font-size:0.73rem;color:var(--text-secondary);font-family:var(--font-ui);">${t}</span>`).join('')}
             </div>` : ''}
 
-            <div class="event-actions">
-              <div style="display:flex;align-items:center;gap:15px;font-family:var(--font-ui);font-size:0.75rem;color:var(--text-muted);">
-                <span title="XP Reward"><i class="fa-solid fa-bolt" style="color:var(--saffron);"></i> +${ev.xpReward || 50} XP</span>
-                <button onclick="toggleLike('${ev._id}')" class="btn-icon" style="color:${(ev.likes||[]).some(u => (u._id || u).toString() === (getUser() || {})._id) ? 'var(--pink)' : 'var(--text-muted)'}"><i class="fa-solid fa-thumbs-up"></i> <span id="likes-${ev._id}">${(ev.likes||[]).length}</span></button>
-                <button onclick="toggleDislike('${ev._id}')" class="btn-icon" style="color:${(ev.dislikes||[]).some(u => (u._id || u).toString() === (getUser() || {})._id) ? 'red' : 'var(--text-muted)'}"><i class="fa-solid fa-thumbs-down"></i> <span id="dislikes-${ev._id}">${(ev.dislikes||[]).length}</span></button>
-                <button onclick="openCommentsModal('${ev._id}', ${ev.commentsOpen})" class="btn-icon" style="color:var(--text-muted)"><i class="fa-solid fa-comment"></i> Comments</button>
-              </div>
+            <div class="event-interactions-bar">
+              <span title="XP Reward"><i class="fa-solid fa-bolt" style="color:var(--saffron);"></i> +${ev.xpReward || 50} XP</span>
               <div style="flex:1;"></div>
-              <button class="bookmark-btn${isSaved ? ' saved' : ''}" id="bookmark-${ev._id}" onclick="toggleSave('${ev._id}', this)" title="${isSaved ? 'Saved' : 'Save event'}">
+              <button onclick="toggleLike('${ev._id}')" class="btn-icon" style="color:${(ev.likes || []).some(u => (u._id || u).toString() === (getUser() || {})._id) ? 'var(--pink)' : 'var(--text-muted)'}"><i class="fa-solid fa-thumbs-up"></i> <span id="likes-${ev._id}">${(ev.likes || []).length}</span></button>
+              <button onclick="toggleDislike('${ev._id}')" class="btn-icon" style="color:${(ev.dislikes || []).some(u => (u._id || u).toString() === (getUser() || {})._id) ? 'red' : 'var(--text-muted)'}"><i class="fa-solid fa-thumbs-down"></i> <span id="dislikes-${ev._id}">${(ev.dislikes || []).length}</span></button>
+              <button onclick="openCommentsModal('${ev._id}', ${ev.commentsOpen})" class="btn-icon" style="color:var(--text-muted)"><i class="fa-solid fa-comment"></i> Comments</button>
+            </div>
+
+            <div class="event-actions">
+              <button class="bookmark-btn${isSaved ? ' saved' : ''}" id="bookmark-${ev._id}" onclick="toggleSave('${ev._id}', this)" title="${isSaved ? 'Saved' : 'Save event'}" style="width: 42px; height: 38px;">
                 <i class="${isSaved ? 'fa-solid' : 'fa-regular'} fa-bookmark"></i>
               </button>
-              <button onclick="openGallery('${ev.title.replace(/'/g, "\\'")}', '${imagesJson}')" class="btn btn-secondary btn-sm" style="font-size:0.78rem;">
+              <button onclick="openGallery('${ev.title.replace(/'/g, "\\'")}', '${imagesJson}')" class="btn btn-secondary btn-sm" style="flex:1; font-size:0.8rem; height:38px;">
                 <i class="fa-solid fa-images"></i> Gallery
               </button>
-              <a href="${(ev.location && ev.location.coords && ev.location.coords.lat) ? `map.html?lat=${ev.location.coords.lat}&lng=${ev.location.coords.lng}&title=${encodeURIComponent(ev.title)}` : 'map.html'}" class="btn btn-secondary btn-sm" style="font-size:0.78rem;">
-                <i class="fa-solid fa-map-pin"></i> View Map
+              <a href="${(ev.location && ev.location.coords && ev.location.coords.lat) ? `map.html?lat=${ev.location.coords.lat}&lng=${ev.location.coords.lng}&title=${encodeURIComponent(ev.title)}` : 'map.html'}" class="btn btn-secondary btn-sm" style="flex:1; font-size:0.8rem; height:38px; display:flex; align-items:center; justify-content:center;">
+                <i class="fa-solid fa-map-pin"></i> Map
               </a>
             </div>
           </div>
         </div>
       `;
-    }).join('');
+      }).join('');
 
-    initScrollReveal();
-  }
-
-  async function toggleSave(eventId, btn) {
-    const token = getToken();
-    if (!token) {
-      showToast('Sign in to save events');
-      setTimeout(() => { window.location.href = '/login.html'; }, 1500);
-      return;
+      initScrollReveal();
     }
 
-    btn.disabled = true;
+    async function toggleSave(eventId, btn) {
+      const token = getToken();
+      if (!token) {
+        showToast('Sign in to save events');
+        setTimeout(() => { window.location.href = '/login.html'; }, 1500);
+        return;
+      }
 
-    try {
-      const data = await apiFetch('/api/events/' + eventId + '/save', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token }
+      btn.disabled = true;
+
+      try {
+        const data = await apiFetch('/api/events/' + eventId + '/save', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+
+        if (data.success) {
+          const isSaved = data.data.saved !== false;
+          btn.className = 'bookmark-btn' + (isSaved ? ' saved' : '');
+          btn.querySelector('i').className = (isSaved ? 'fa-solid' : 'fa-regular') + ' fa-bookmark';
+
+          if (isSaved) {
+            savedEventIds.push(eventId);
+          } else {
+            savedEventIds = savedEventIds.filter(id => id !== eventId);
+          }
+          updateSavedCount();
+          showToast(isSaved ? 'Event saved to your list' : 'Event removed from saved');
+        }
+      } catch (e) {
+        showToast('Failed to save event. Try again.');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function updateSavedCount() {
+      // Saved count badge removed from topbar — no-op kept for compatibility
+    }
+
+    // ─── Event Creation ──────────────────────────────────────────────
+    let ce_map = null;
+    let ce_marker = null;
+    let uploadedImages = [];
+
+    function handleImageSelection(files) {
+      Array.from(files).forEach(async file => {
+        if (!file.type.startsWith('image/')) return;
+        const base64 = await readFileAsBase64(file);
+        uploadedImages.push(base64);
+        renderImagePreviews();
       });
+    }
 
-      if (data.success) {
-        const isSaved = data.data.saved !== false;
-        btn.className = 'bookmark-btn' + (isSaved ? ' saved' : '');
-        btn.querySelector('i').className = (isSaved ? 'fa-solid' : 'fa-regular') + ' fa-bookmark';
+    function renderImagePreviews() {
+      const preview = document.getElementById('imagePreview');
+      if (!preview) return;
+      preview.innerHTML = uploadedImages.map((img, index) => `
+        <div style="position:relative; width:80px; height:80px; border-radius:var(--radius-md); overflow:hidden; border:1px solid var(--border);">
+          <img src="${img}" style="width:100%; height:100%; object-fit:cover;">
+          <button type="button" onclick="removeUploadedImage(${index})" style="position:absolute; top:2px; right:2px; background:rgba(0,0,0,0.6); color:white; border:none; border-radius:50%; width:18px; height:18px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:0.6rem;"><i class="fa-solid fa-times"></i></button>
+        </div>
+      `).join('');
+    }
 
-        if (isSaved) {
-          savedEventIds.push(eventId);
+    function removeUploadedImage(index) {
+      uploadedImages.splice(index, 1);
+      renderImagePreviews();
+    }
+
+    function openCreateEventModal() {
+      if (!getToken()) return window.location.href = 'login.html';
+      document.getElementById('createEventModal').style.display = 'flex';
+      uploadedImages = [];
+      renderImagePreviews();
+
+      // Initialize map after modal is shown
+      setTimeout(() => {
+        if (!ce_map) {
+          ce_map = L.map('ce_map').setView([12.9716, 77.5946], 12); // Bangalore default
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(ce_map);
+
+          ce_map.on('click', (e) => {
+            if (ce_marker) ce_map.removeLayer(ce_marker);
+            ce_marker = L.marker(e.latlng).addTo(ce_map);
+            document.getElementById('ce_lat').value = e.latlng.lat.toFixed(6);
+            document.getElementById('ce_lng').value = e.latlng.lng.toFixed(6);
+          });
         } else {
-          savedEventIds = savedEventIds.filter(id => id !== eventId);
+          ce_map.invalidateSize();
         }
-        updateSavedCount();
-        showToast(isSaved ? 'Event saved to your list' : 'Event removed from saved');
-      }
-    } catch (e) {
-      showToast('Failed to save event. Try again.');
-    } finally {
-      btn.disabled = false;
+      }, 200);
     }
-  }
 
-  function updateSavedCount() {
-    // Saved count badge removed from topbar — no-op kept for compatibility
-  }
+    function toggleMapFullscreen() {
+      const mapDiv = document.getElementById('ce_map');
+      const btn = document.getElementById('ce_map_fs');
+      const isFull = mapDiv.style.height === '500px';
+      mapDiv.style.height = isFull ? '280px' : '500px';
+      btn.innerHTML = isFull ? '<i class="fa-solid fa-expand"></i>' : '<i class="fa-solid fa-compress"></i>';
+      setTimeout(() => ce_map.invalidateSize(), 300);
+    }
 
-  // ─── Event Creation ──────────────────────────────────────────────
-  function openCreateEventModal() {
-    if(!getToken()) return window.location.href = 'login.html';
-    document.getElementById('createEventModal').style.display = 'flex';
-  }
-  function closeCreateEventModal() {
-    document.getElementById('createEventModal').style.display = 'none';
-  }
-
-  function readFileAsBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = e => resolve(e.target.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-
-  async function submitNewEvent(e) {
-    e.preventDefault();
-    const btn = document.getElementById('ce_submitBtn');
-    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
-    
-    try {
-      // Convert uploaded images to base64
-      const imageFiles = document.getElementById('ce_images').files;
-      const images = [];
-      for(let i = 0; i < imageFiles.length; i++) {
-        const b64 = await readFileAsBase64(imageFiles[i]);
-        images.push(b64);
+    function updateMarkerFromInputs() {
+      const lat = parseFloat(document.getElementById('ce_lat').value);
+      const lng = parseFloat(document.getElementById('ce_lng').value);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        const latlng = [lat, lng];
+        if (ce_marker) ce_map.removeLayer(ce_marker);
+        ce_marker = L.marker(latlng).addTo(ce_map);
+        ce_map.panTo(latlng);
       }
+    }
 
-      const coOrgString = document.getElementById('ce_orgs').value.trim();
-      const coOrganizers = coOrgString ? coOrgString.split(',').map(s=>s.trim()).filter(s=>s) : [];
-      
-      const payload = {
-        title: document.getElementById('ce_title').value,
-        description: document.getElementById('ce_desc').value,
-        category: document.getElementById('ce_cat').value,
-        date: document.getElementById('ce_date').value,
-        location: { city: document.getElementById('ce_city').value, name: document.getElementById('ce_place').value },
-        price: document.getElementById('ce_fee').value,
-        xpReward: parseInt(document.getElementById('ce_xp').value) || 100,
-        tags: document.getElementById('ce_tags').value.split(',').map(s=>s.trim()).filter(s=>s),
-        images,
-        coOrganizers
-      };
-      
-      const res = await apiFetch('/api/events', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + getToken() },
-        body: JSON.stringify(payload)
+    function closeCreateEventModal() {
+      document.getElementById('createEventModal').style.display = 'none';
+    }
+
+    function readFileAsBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
       });
-      if(res.success) {
-        showToast('✅ Event submitted for admin approval!');
-        closeCreateEventModal();
-        document.getElementById('createEventForm').reset();
-      } else {
-        showToast('Error: ' + res.message);
-      }
-    } catch(err) {
-      showToast('Error creating event. ' + (err.message || ''));
-    } finally {
-      btn.disabled = false; btn.innerHTML = 'Submit Event for Approval';
     }
-  }
 
-  // ─── Interactions (Likes/Dislikes) ────────────────────────────────────────
-  async function toggleLike(eventId) {
-    if(!getToken()) return showToast('Please login to like');
-    try {
-      const res = await apiFetch(`/api/events/${eventId}/like`, { method:'POST', headers:{'Authorization':'Bearer '+getToken()} });
-      if(res.success) {
-        document.getElementById(`likes-${eventId}`).textContent = res.likes;
-        document.getElementById(`dislikes-${eventId}`).textContent = res.dislikes;
-      }
-    } catch(e){}
-  }
-  async function toggleDislike(eventId) {
-    if(!getToken()) return showToast('Please login to dislike');
-    try {
-      const res = await apiFetch(`/api/events/${eventId}/dislike`, { method:'POST', headers:{'Authorization':'Bearer '+getToken()} });
-      if(res.success) {
-        document.getElementById(`likes-${eventId}`).textContent = res.likes;
-        document.getElementById(`dislikes-${eventId}`).textContent = res.dislikes;
-      }
-    } catch(e){}
-  }
+    async function submitNewEvent(e) {
+      e.preventDefault();
+      const btn = document.getElementById('ce_submitBtn');
 
-  // ─── Comments ─────────────────────────────────────────────────────────────
-  let currentCommentEventId = null;
-  let currentCommentImage = '';
-  
-  function openCommentsModal(eventId, isOpen) {
-    currentCommentEventId = eventId;
-    document.getElementById('commentsModal').style.display = 'flex';
-    document.getElementById('commentsList').innerHTML = '<div class="spinner" style="margin:40px auto;"></div>';
-    
-    // Check if comments are open
-    const formContainer = document.getElementById('commentFormContainer');
-    if(isOpen || isOpen === undefined) {
-      formContainer.style.display = 'block';
-    } else {
-      formContainer.style.display = 'none';
-    }
-    
-    loadComments(eventId);
-  }
-  
-  function closeCommentsModal() {
-    document.getElementById('commentsModal').style.display = 'none';
-    currentCommentEventId = null;
-  }
-  
-  async function loadComments(eventId) {
-    try {
-      const res = await apiFetch(`/api/events/${eventId}/comments`);
-      if(res.success) {
-        const list = document.getElementById('commentsList');
-        if(res.data.length === 0) {
-          list.innerHTML = '<p style="text-align:center;color:var(--text-muted);margin-top:20px;">No comments yet. Be the first!</p>';
-          return;
+      const lat = document.getElementById('ce_lat').value;
+      const lng = document.getElementById('ce_lng').value;
+
+      if (!lat || !lng) {
+        showToast('Please select a location on the map', 'error');
+        return;
+      }
+
+      btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+
+      try {
+        const images = uploadedImages;
+
+        const coOrgString = document.getElementById('ce_orgs').value.trim();
+        const coOrganizers = coOrgString ? coOrgString.split(',').map(s => s.trim()).filter(s => s) : [];
+
+        const payload = {
+          title: document.getElementById('ce_title').value,
+          description: document.getElementById('ce_desc').value,
+          category: document.getElementById('ce_cat').value,
+          date: document.getElementById('ce_date').value,
+          location: {
+            city: document.getElementById('ce_city').value,
+            name: document.getElementById('ce_place').value,
+            coords: { lat: parseFloat(lat), lng: parseFloat(lng) }
+          },
+          price: document.getElementById('ce_fee').value,
+          xpReward: parseInt(document.getElementById('ce_xp').value) || 100,
+          tags: document.getElementById('ce_tags').value.split(',').map(s => s.trim()).filter(s => s),
+          images,
+          coOrganizers
+        };
+
+        const res = await apiFetch('/api/events', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + getToken() },
+          body: JSON.stringify(payload)
+        });
+        if (res.success) {
+          showToast('✅ Event submitted for admin approval!');
+          closeCreateEventModal();
+          document.getElementById('createEventForm').reset();
+          uploadedImages = [];
+          renderImagePreviews();
+        } else {
+          showToast('Error: ' + res.message);
         }
-        list.innerHTML = res.data.map(c => `
+      } catch (err) {
+        showToast('Error creating event. ' + (err.message || ''));
+      } finally {
+        btn.disabled = false; btn.innerHTML = 'Submit Event for Approval';
+      }
+    }
+
+    // ─── Interactions (Likes/Dislikes) ────────────────────────────────────────
+    async function toggleLike(eventId) {
+      if (!getToken()) return showToast('Please login to like');
+      try {
+        const res = await apiFetch(`/api/events/${eventId}/like`, { method: 'POST', headers: { 'Authorization': 'Bearer ' + getToken() } });
+        if (res.success) {
+          document.getElementById(`likes-${eventId}`).textContent = res.likes;
+          document.getElementById(`dislikes-${eventId}`).textContent = res.dislikes;
+        }
+      } catch (e) { }
+    }
+    async function toggleDislike(eventId) {
+      if (!getToken()) return showToast('Please login to dislike');
+      try {
+        const res = await apiFetch(`/api/events/${eventId}/dislike`, { method: 'POST', headers: { 'Authorization': 'Bearer ' + getToken() } });
+        if (res.success) {
+          document.getElementById(`likes-${eventId}`).textContent = res.likes;
+          document.getElementById(`dislikes-${eventId}`).textContent = res.dislikes;
+        }
+      } catch (e) { }
+    }
+
+    // ─── Comments ─────────────────────────────────────────────────────────────
+    let currentCommentEventId = null;
+    let currentCommentImage = '';
+
+    function openCommentsModal(eventId, isOpen) {
+      currentCommentEventId = eventId;
+      document.getElementById('commentsModal').style.display = 'flex';
+      document.getElementById('commentsList').innerHTML = '<div class="spinner" style="margin:40px auto;"></div>';
+
+      // Check if comments are open
+      const formContainer = document.getElementById('commentFormContainer');
+      if (isOpen || isOpen === undefined) {
+        formContainer.style.display = 'block';
+      } else {
+        formContainer.style.display = 'none';
+      }
+
+      loadComments(eventId);
+    }
+
+    function closeCommentsModal() {
+      document.getElementById('commentsModal').style.display = 'none';
+      currentCommentEventId = null;
+    }
+
+    async function loadComments(eventId) {
+      try {
+        const res = await apiFetch(`/api/events/${eventId}/comments`);
+        if (res.success) {
+          const list = document.getElementById('commentsList');
+          if (res.data.length === 0) {
+            list.innerHTML = '<p style="text-align:center;color:var(--text-muted);margin-top:20px;">No comments yet. Be the first!</p>';
+            return;
+          }
+          list.innerHTML = res.data.map(c => `
           <div style="background:var(--bg); padding:15px; border-radius:var(--radius-md); border:1px solid var(--border);">
             <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
               <strong style="font-size:0.9rem;">${c.author?.name || 'Unknown'}</strong>
@@ -769,58 +987,106 @@
             ${c.image ? `<img src="${c.image}" style="max-width:100%; border-radius:8px; margin-top:10px; max-height:200px; object-fit:cover;" />` : ''}
           </div>
         `).join('');
+        }
+      } catch (e) {
+        document.getElementById('commentsList').innerHTML = '<p style="color:red;text-align:center;">Failed to load comments</p>';
       }
-    } catch(e) {
-      document.getElementById('commentsList').innerHTML = '<p style="color:red;text-align:center;">Failed to load comments</p>';
     }
-  }
 
-  function handleCommentImage(input) {
-    const file = input.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      currentCommentImage = e.target.result;
-      document.getElementById('commentImagePreview').style.display = 'block';
-    };
-    reader.readAsDataURL(file);
-  }
+    function handleCommentImage(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        currentCommentImage = e.target.result;
+        document.getElementById('commentImagePreview').style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
 
-  async function submitComment(e) {
-    e.preventDefault();
-    if(!getToken()) return showToast('Please login to comment');
-    
-    const text = document.getElementById('commentText').value;
-    const btn = document.getElementById('commentSubmitBtn');
-    btn.disabled = true;
-    
-    try {
-      const res = await apiFetch(`/api/events/${currentCommentEventId}/comments`, {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + getToken() },
-        body: JSON.stringify({ text, image: currentCommentImage })
-      });
-      if(res.success) {
-        document.getElementById('commentText').value = '';
-        document.getElementById('commentImage').value = '';
-        currentCommentImage = '';
-        document.getElementById('commentImagePreview').style.display = 'none';
-        loadComments(currentCommentEventId);
-      } else {
-        showToast(res.message);
+    async function submitComment(e) {
+      e.preventDefault();
+      if (!getToken()) return showToast('Please login to comment');
+
+      const text = document.getElementById('commentText').value;
+      const btn = document.getElementById('commentSubmitBtn');
+      btn.disabled = true;
+
+      try {
+        const res = await apiFetch(`/api/events/${currentCommentEventId}/comments`, {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + getToken() },
+          body: JSON.stringify({ text, image: currentCommentImage })
+        });
+        if (res.success) {
+          document.getElementById('commentText').value = '';
+          document.getElementById('commentImage').value = '';
+          currentCommentImage = '';
+          document.getElementById('commentImagePreview').style.display = 'none';
+          loadComments(currentCommentEventId);
+        } else {
+          showToast(res.message);
+        }
+      } catch (err) {
+        showToast('Error posting comment');
+      } finally {
+        btn.disabled = false;
       }
-    } catch(err) {
-      showToast('Error posting comment');
-    } finally {
-      btn.disabled = false;
     }
-  }
 
-  init();
-</script>
-<style>
-  .btn-icon { background:none; border:none; cursor:pointer; font-family:inherit; font-size:inherit; display:flex; align-items:center; gap:4px; padding:0; transition:var(--transition); }
-  .btn-icon:hover { opacity: 0.8; transform:scale(1.05); }
-</style>
+    // ─── Image Upload Listeners ──────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      const dropZone = document.getElementById('imageDropZone');
+      const fileInput = document.getElementById('ce_images');
+
+      if (dropZone && fileInput) {
+        dropZone.onclick = () => fileInput.click();
+        fileInput.onchange = (e) => handleImageSelection(e.target.files);
+
+        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--saffron)'; dropZone.style.background = 'rgba(249,115,22,0.05)'; };
+        dropZone.ondragleave = () => { dropZone.style.borderColor = 'var(--border)'; dropZone.style.background = 'var(--bg-muted)'; };
+        dropZone.ondrop = (e) => {
+          e.preventDefault();
+          dropZone.style.borderColor = 'var(--border)';
+          dropZone.style.background = 'var(--bg-muted)';
+          handleImageSelection(e.dataTransfer.files);
+        };
+
+        window.addEventListener('paste', (e) => {
+          if (document.getElementById('createEventModal').style.display === 'flex') {
+            const items = e.clipboardData.items;
+            for (let item of items) {
+              if (item.type.indexOf('image') !== -1) {
+                const file = item.getAsFile();
+                handleImageSelection([file]);
+              }
+            }
+          }
+        });
+      }
+    });
+
+    init();
+  </script>
+  <style>
+    .btn-icon {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: inherit;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0;
+      transition: var(--transition);
+    }
+
+    .btn-icon:hover {
+      opacity: 0.8;
+      transform: scale(1.05);
+    }
+  </style>
 </body>
+
 </html>
