@@ -114,6 +114,44 @@ function initNavbar() {
   updateNavbarAuth();
 }
 
+function initSidebarToggle() {
+  const sidebar = document.querySelector('.sidebar');
+  const main = document.querySelector('.dashboard-layout, .chat-container, .map-page-layout');
+  if (!sidebar) return;
+
+  const toggleBtn = document.createElement('button');
+  toggleBtn.className = 'sidebar-toggle-btn';
+  toggleBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+  toggleBtn.onclick = () => {
+    sidebar.classList.toggle('collapsed');
+    if (main) main.classList.toggle('expanded');
+    toggleBtn.innerHTML = sidebar.classList.contains('collapsed') 
+      ? '<i class="fa-solid fa-chevron-right"></i>' 
+      : '<i class="fa-solid fa-chevron-left"></i>';
+  };
+  sidebar.appendChild(toggleBtn);
+}
+
+function initBackButtons() {
+  document.querySelectorAll('.back-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      if (btn.getAttribute('href') === '#') {
+        e.preventDefault();
+        window.history.back();
+      }
+    };
+  });
+}
+
+function initClickableRows() {
+  document.addEventListener('click', (e) => {
+    const row = e.target.closest('.clickable-row');
+    if (row && row.dataset.href) {
+      window.location.href = row.dataset.href;
+    }
+  });
+}
+
 function updateNavbarAuth() {
   const user = getUser();
   const loginBtn = document.getElementById('navLoginBtn');
@@ -128,7 +166,33 @@ function updateNavbarAuth() {
       userMenu.style.display = 'flex';
       if (navUserName) navUserName.textContent = user.name.split(' ')[0];
     }
+    
+    // Call global auth UI update
+    updateGlobalAuthUI(user);
   }
+}
+
+function updateGlobalAuthUI(user) {
+  if (!user) user = getUser();
+  if (!user) return;
+
+  // Admin Panel visibility in all sidebars
+  if (user.role === 'admin') {
+    document.querySelectorAll('.admin-only').forEach(el => {
+      el.style.display = 'flex';
+      // Ensure it's visible if it was hidden by a different display property
+      el.classList.remove('hidden'); 
+    });
+  }
+
+  // Update sidebar profile if exists
+  const sidebarName = document.getElementById('sidebarName');
+  const sidebarAvatar = document.getElementById('sidebarAvatar');
+  const sidebarLevel = document.getElementById('sidebarLevel');
+  
+  if (sidebarName) sidebarName.textContent = user.name;
+  if (sidebarAvatar) sidebarAvatar.textContent = user.name.charAt(0).toUpperCase();
+  if (sidebarLevel) sidebarLevel.textContent = 'Level ' + (user.level || 1) + ' Explorer';
 }
 
 /* ─── Smooth Scroll ─────────────────────────────── */
@@ -326,9 +390,13 @@ function lsSet(key, value) {
 
 document.addEventListener('DOMContentLoaded', function () {
   initNavbar();
+  updateGlobalAuthUI(); // Ensure sidebar/admin-only elements are handled even without navbar
   initSmoothScroll();
   initScrollReveal();
   initKeyboardShortcuts();
+  initSidebarToggle();
+  initBackButtons();
+  initClickableRows();
 
   // Apply ripple to primary buttons
   document.querySelectorAll('.btn-primary').forEach(addRipple);
@@ -338,5 +406,13 @@ document.addEventListener('DOMContentLoaded', function () {
   const currentPath = window.location.pathname;
   if (authPages.some(p => currentPath.endsWith(p)) && isLoggedIn()) {
     window.location.href = '/dashboard.html';
+  }
+  // Logout handler
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      logout();
+    });
   }
 });

@@ -1,7 +1,6 @@
 /* ═══════════════════════════════════════════════
    ECHOROOTS — map.js
-   Leaflet map, places API, sidebar, filters
-   (Depends on script.js for apiFetch & helpers)
+   Leaflet map, Routing, Geolocation, Places API
    ═══════════════════════════════════════════════ */
 
 const CATEGORY_COLORS = {
@@ -12,6 +11,8 @@ const CATEGORY_COLORS = {
   hidden_gem: '#10B981',
   temple:     '#F59E0B',
   art:        '#EF4444',
+  event:      '#3B82F6',
+  quest:      '#8B5CF6',
   default:    '#94A3B8'
 };
 
@@ -23,11 +24,14 @@ const CATEGORY_ICONS = {
   hidden_gem: 'fa-gem',
   temple:     'fa-gopuram',
   art:        'fa-palette',
+  event:      'fa-calendar-check',
+  quest:      'fa-trophy',
   default:    'fa-map-pin'
 };
 
 // ── Globals ───────────────────────────────────
-let map, allPlaces = [], markers = [], activeCategory = 'all', searchQuery = '';
+let map, allPlaces = [], allEvents = [], allQuests = [], markers = [], activeCategory = 'all', searchQuery = '';
+let routingControl, userCoords = null, selectedPlace = null;
 
 // ── Init map ──────────────────────────────────
 function initMap() {
@@ -45,23 +49,23 @@ function initMap() {
   map = L.map('mainMap', {
     center: center,
     zoom: zoom,
-    zoomControl: true
+    zoomControl: false
   });
 
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
+
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    attribution: '© OpenStreetMap contributors',
     maxZoom: 18
   }).addTo(map);
 
-  if (latParam && lngParam) {
-    const m = L.marker([parseFloat(latParam), parseFloat(lngParam)], { icon: makeIcon('festival') }).addTo(map);
-    if (titleParam) {
-      m.bindPopup(`<div style="font-family:var(--font-ui);font-weight:700;">${titleParam}</div>`).openPopup();
-    }
-  }
-
-  // Invalidate size to fix rendering issues in flex containers
+  // Invalidate size to fix rendering issues
   setTimeout(() => map.invalidateSize(), 400);
+
+  // Listen for directions button
+  document.getElementById('directionsBtn').onclick = () => startDirections();
+  document.getElementById('locateBtn').onclick = () => getMyLocation();
+  document.getElementById('savePlaceBtn').onclick = () => toggleSavePlace();
 }
 
 // ── Custom marker icon ─────────────────────────
@@ -89,191 +93,273 @@ function makeIcon(category) {
   });
 }
 
-// ── Load places from API ───────────────────────
-async function loadPlaces() {
+// ── Load all data ──────────────────────────────
+async function loadAllData() {
   try {
-    let res = await apiFetch('/api/places?limit=100');
+    const [placesRes, eventsRes, questsRes] = await Promise.all([
+      apiFetch('/api/places?limit=100'),
+      apiFetch('/api/events'),
+      apiFetch('/api/quests')
+    ]);
 
-    if (!res.success) throw new Error(res.message);
-    allPlaces = res.data;
-
-    // If DB empty, seed then reload
-    if (allPlaces.length === 0) {
-      await apiFetch('/api/places/seed', { method: 'POST' });
-      res = await apiFetch('/api/places?limit=100');
-      allPlaces = res.data || [];
-    }
+    allPlaces = placesRes.data || [];
+    allEvents = eventsRes.data || [];
+    allQuests = questsRes.data || [];
 
     renderAll();
   } catch (err) {
-    console.error('Failed to load places:', err);
-    const listEl = document.getElementById('placeList');
-    if (listEl) {
-      listEl.innerHTML = `
-        <div style="padding:24px;text-align:center;color:var(--text-muted);">
-          <i class="fa-solid fa-triangle-exclamation" style="font-size:1.5rem;margin-bottom:8px;display:block;"></i>
-          Could not load places. Is the server running?
-        </div>`;
-    }
-    const countEl = document.getElementById('placeCount');
-    if (countEl) countEl.textContent = 'Error loading';
+    console.error('Failed to load map data:', err);
   }
 }
 
-// ── Render filtered places ─────────────────────
 function renderAll() {
-  if (!allPlaces) return;
-
-  const filtered = allPlaces.filter(p => {
-    const matchCat = activeCategory === 'all' || p.category === activeCategory;
-    const q = searchQuery.toLowerCase();
-    const matchQ = !q ||
-      (p.name || '').toLowerCase().includes(q) ||
-      (p.location?.city || '').toLowerCase().includes(q) ||
-      (p.category || '').toLowerCase().includes(q) ||
-      (p.tags || []).some(t => t.toLowerCase().includes(q));
-    return matchCat && matchQ;
-  });
-
-  updateMarkers(filtered);
-  updateSidebar(filtered);
-}
-
-// ── Markers ────────────────────────────────────
-function updateMarkers(places) {
   if (!map) return;
-
+  
   // Clear old markers
   markers.forEach(m => map.removeLayer(m));
   markers = [];
 
-  places.forEach(place => {
-    const lat = place.location?.coords?.lat;
-    const lng = place.location?.coords?.lng;
-    if (!lat || !lng) return;
+  const q = searchQuery.toLowerCase();
 
-    const marker = L.marker([lat, lng], { icon: makeIcon(place.category) }).addTo(map);
-
-    marker.bindPopup(`
-      <div class="map-place-popup">
-        <div style="font-family:var(--font-ui);font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${CATEGORY_COLORS[place.category] || '#94A3B8'};margin-bottom:6px;">
-          ${place.category || 'heritage'}
-        </div>
-        <div style="font-family:var(--font-ui);font-weight:700;font-size:1rem;margin-bottom:4px;">${place.name}</div>
-        <div style="font-size:0.8rem;color:#64748b;margin-bottom:10px;">${place.location?.city || ''}, ${place.location?.state || ''}</div>
-        <div style="font-size:0.82rem;color:#475569;line-height:1.55;margin-bottom:12px;">${(place.description || '').slice(0, 120)}${(place.description || '').length > 120 ? '…' : ''}</div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <span style="background:rgba(249,115,22,0.1);color:#F97316;padding:2px 8px;border-radius:20px;font-size:0.72rem;font-weight:700;">
-            ★ ${place.rating || 4.0}
-          </span>
-          <span style="font-size:0.72rem;color:#94a3b8;">${place.entryFee || 'Free'}</span>
-        </div>
-      </div>
-    `, { maxWidth: 300 });
-
-    marker.on('click', () => showFloatingInfo(place));
-    markers.push(marker);
+  // 1. Render Places
+  const filteredPlaces = allPlaces.filter(p => {
+    const matchCat = activeCategory === 'all' || p.category === activeCategory;
+    const matchQ = !q || p.name.toLowerCase().includes(q) || (p.location?.city || '').toLowerCase().includes(q);
+    return matchCat && matchQ;
   });
+  filteredPlaces.forEach(p => addMarker(p, p.category));
+
+  // 2. Render Events
+  const filteredEvents = allEvents.filter(e => {
+    const matchCat = activeCategory === 'all' || activeCategory === 'event';
+    const matchQ = !q || e.title.toLowerCase().includes(q) || (e.location?.city || '').toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+  filteredEvents.forEach(e => addMarker(e, 'event'));
+
+  // 3. Render Quests
+  const filteredQuests = allQuests.filter(qst => {
+    const matchCat = (activeCategory === 'all' || activeCategory === 'quest') && qst.location?.coords;
+    const matchQ = !q || qst.title.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+  filteredQuests.forEach(qst => addMarker(qst, 'quest'));
+
+  updateSidebar([...filteredPlaces, ...filteredEvents, ...filteredQuests]);
 }
 
-// ── Sidebar list ───────────────────────────────
-function updateSidebar(places) {
-  const list  = document.getElementById('placeList');
+function addMarker(item, type) {
+  const lat = item.location?.coords?.lat;
+  const lng = item.location?.coords?.lng;
+  if (!lat || !lng) return;
+
+  const m = L.marker([lat, lng], { icon: makeIcon(type) }).addTo(map);
+  const title = item.title || item.name;
+  const desc = item.description || '';
+  
+  m.bindPopup(`
+    <div class="map-place-popup">
+      <div style="font-family:var(--font-ui);font-size:0.65rem;font-weight:700;text-transform:uppercase;color:${CATEGORY_COLORS[type]};margin-bottom:4px;">${type}</div>
+      <div style="font-family:var(--font-ui);font-weight:700;font-size:1rem;margin-bottom:4px;">${title}</div>
+      <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:8px;">${item.location?.city || ''}</div>
+      <p style="font-size:0.8rem;line-height:1.4;margin-bottom:12px;">${truncate(desc, 100)}</p>
+      <button class="btn btn-primary btn-xs" onclick="startDirectionsTo(${lat}, ${lng}, '${title}')">Get Directions</button>
+    </div>
+  `);
+
+  m.on('click', () => {
+    selectedPlace = item;
+    showFloatingInfo(item, type);
+  });
+  markers.push(m);
+}
+
+function updateSidebar(items) {
+  const list = document.getElementById('placeList');
+  const mapList = document.getElementById('mapPlaceList');
   const count = document.getElementById('placeCount');
-  if (!list || !count) return;
-
-  count.textContent = `${places.length} place${places.length !== 1 ? 's' : ''} found`;
-
-  if (places.length === 0) {
-    list.innerHTML = `
-      <div style="padding:32px 16px;text-align:center;color:var(--text-muted);">
-        <i class="fa-solid fa-map-location-dot" style="font-size:2rem;margin-bottom:12px;display:block;opacity:0.3;"></i>
-        No places match your filter.
-      </div>`;
-    return;
-  }
-
-  list.innerHTML = places.map(p => `
-    <div class="place-list-item" data-id="${p._id}" onclick="focusPlace('${p._id}')">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-        <div class="cat-dot" style="background:${CATEGORY_COLORS[p.category] || '#94A3B8'};"></div>
-        <span style="font-family:var(--font-ui);font-weight:700;font-size:0.88rem;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</span>
-        <span style="font-size:0.72rem;color:var(--text-muted);">★ ${p.rating || 4.0}</span>
+  
+  const html = items.map(p => `
+    <div class="place-list-item" onclick="focusPlace('${p._id}', '${p.category ? p.category : 'event'}')">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+        <div class="cat-dot" style="background:${CATEGORY_COLORS[p.category] || CATEGORY_COLORS.event}"></div>
+        <span style="font-weight:700;font-size:0.9rem;">${p.name || p.title}</span>
       </div>
-      <div style="font-size:0.78rem;color:var(--text-secondary);">${p.location?.city || ''}, ${p.location?.state || ''}</div>
+      <div style="font-size:0.75rem;color:var(--text-muted);">${p.location?.city || ''}</div>
     </div>
   `).join('');
+
+  if (list) list.innerHTML = html;
+  if (mapList) mapList.innerHTML = html;
+  if (count) count.textContent = `${items.length} items found`;
 }
 
-// ── Focus on a place ───────────────────────────
-function focusPlace(id) {
-  const place = allPlaces.find(p => p._id === id);
-  if (!place) return;
+function focusPlace(id, type) {
+  let p = allPlaces.find(x => x._id === id);
+  if(!p) p = allEvents.find(x => x._id === id);
+  if(!p) p = allQuests.find(x => x._id === id);
+  
+  if (!p) return;
+  selectedPlace = p;
+  map.flyTo([p.location.coords.lat, p.location.coords.lng], 15);
+  showFloatingInfo(p, p.category || type);
+}
 
-  // Highlight sidebar item
-  document.querySelectorAll('.place-list-item').forEach(el => el.classList.remove('active'));
-  const item = document.querySelector(`.place-list-item[data-id="${id}"]`);
-  if (item) item.classList.add('active');
-
-  const lat = place.location?.coords?.lat;
-  const lng = place.location?.coords?.lng;
-  if (lat && lng && map) {
-    map.flyTo([lat, lng], 13, { animate: true, duration: 1 });
-    const marker = markers.find(m => {
-      const ll = m.getLatLng();
-      return Math.abs(ll.lat - lat) < 0.0001 && Math.abs(ll.lng - lng) < 0.0001;
-    });
-    if (marker) marker.openPopup();
+function showFloatingInfo(item, type) {
+  const card = document.getElementById('floatingInfo');
+  const imgContainer = document.getElementById('infoImageContainer');
+  const img = document.getElementById('infoImage');
+  const label = document.getElementById('infoLabel');
+  const details = document.getElementById('infoDetails');
+  
+  document.getElementById('infoName').textContent = item.name || item.title;
+  
+  let meta = `${capitalize(type)} · ${item.location?.city || ''}`;
+  if (type === 'event' && item.date) {
+    meta += ` · ${new Date(item.date).toLocaleDateString()}`;
+  }
+  document.getElementById('infoMeta').textContent = meta;
+  
+  // Show image if available
+  const image = (item.images && item.images.length > 0) ? item.images[0] : (item.image || null);
+  if (image) {
+    img.src = image;
+    imgContainer.style.display = 'block';
+  } else {
+    imgContainer.style.display = 'none';
   }
 
-  showFloatingInfo(place);
-}
-
-// ── Floating info card ─────────────────────────
-function showFloatingInfo(place) {
-  const card = document.getElementById('floatingInfo');
-  if (!card) return;
-  document.getElementById('infoName').textContent = place.name;
-  document.getElementById('infoMeta').textContent =
-    `${capitalize(place.category)} · ${place.location?.city || ''}, ${place.location?.state || ''}`;
+  label.textContent = capitalize(type);
+  details.textContent = item.description || 'No additional details available.';
+  
   card.style.display = 'block';
 }
 
-// ── Filter pills ───────────────────────────────
-function initFilters() {
+// ── Geolocation ────────────────────────────────
+function getMyLocation() {
+  if (!navigator.geolocation) return showToast('Geolocation not supported', 'error');
+  
+  showToast('Locating...', 'info');
+  navigator.geolocation.getCurrentPosition(pos => {
+    userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    map.flyTo([userCoords.lat, userCoords.lng], 15);
+    
+    // Add person marker
+    L.circleMarker([userCoords.lat, userCoords.lng], {
+      radius: 8, fillOpacity: 1, color: '#fff', weight: 3, fillColor: '#3B82F6'
+    }).addTo(map).bindPopup("You are here").openPopup();
+
+  }, err => {
+    showToast('Could not get location', 'error');
+  });
+}
+
+// ── Directions ──────────────────────────────────
+function startDirections() {
+  if (!selectedPlace) return;
+  const lat = selectedPlace.location.coords.lat;
+  const lng = selectedPlace.location.coords.lng;
+  const title = selectedPlace.name || selectedPlace.title;
+  startDirectionsTo(lat, lng, title);
+}
+
+let mapClickDirectionsHandler = null;
+
+function startDirectionsTo(destLat, destLng, destTitle) {
+  // Switch sidebar view
+  document.getElementById('searchContainer').style.display = 'none';
+  document.getElementById('directionsRailContainer').style.display = 'block';
+  document.getElementById('railEndInput').value = destTitle;
+
+  if (!userCoords) {
+    getMyLocation();
+  }
+
+  // Clear previous routing
+  if (routingControl) map.removeControl(routingControl);
+
+  const startLat = userCoords?.lat || 12.9716;
+  const startLng = userCoords?.lng || 77.5946;
+
+  routingControl = L.Routing.control({
+    waypoints: [
+      L.latLng(startLat, startLng),
+      L.latLng(destLat, destLng)
+    ],
+    routeWhileDragging: false,
+    addWaypoints: false,
+    collapsible: true,
+    containerClassName: 'routing-instructions',
+    itineraryContainer: document.getElementById('railRoutingContainer'),
+    lineOptions: { styles: [{ color: '#F97316', weight: 6, opacity: 0.8 }] }
+  }).addTo(map);
+
+  // Listen for manual start input
+  const startInput = document.getElementById('railStartInput');
+  startInput.onchange = async () => {
+    const query = startInput.value;
+    if (!query) return;
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        const newStart = L.latLng(data[0].lat, data[0].lon);
+        routingControl.setWaypoints([newStart, L.latLng(destLat, destLng)]);
+        map.flyTo(newStart, 14);
+      }
+    } catch (err) {
+      showToast('Could not find start location', 'error');
+    }
+  };
+
+  // Map click listener to set start
+  if (mapClickDirectionsHandler) map.off('click', mapClickDirectionsHandler);
+  mapClickDirectionsHandler = (e) => {
+    const newStart = e.latlng;
+    routingControl.setWaypoints([newStart, L.latLng(destLat, destLng)]);
+    document.getElementById('railStartInput').value = `${newStart.lat.toFixed(5)}, ${newStart.lng.toFixed(5)}`;
+    showToast('Start location updated from map', 'success');
+  };
+  map.on('click', mapClickDirectionsHandler);
+}
+
+function exitDirections() {
+  document.getElementById('searchContainer').style.display = 'block';
+  document.getElementById('directionsRailContainer').style.display = 'none';
+  if (routingControl) map.removeControl(routingControl);
+  if (mapClickDirectionsHandler) {
+    map.off('click', mapClickDirectionsHandler);
+    mapClickDirectionsHandler = null;
+  }
+}
+
+async function toggleSavePlace() {
+  if (!selectedPlace || !isLoggedIn()) return showToast('Please login to save', 'error');
+  const res = await apiFetch(`/api/places/${selectedPlace._id}/save`, { method: 'POST' });
+  if (res.success) {
+    showToast(res.message, 'success');
+  }
+}
+
+// ── Init ───────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  initMap();
+  loadAllData();
+  
+  const searchInput = document.getElementById('mapSearchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value;
+      renderAll();
+    });
+  }
+
   document.querySelectorAll('.filter-pill').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.onclick = () => {
       document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       activeCategory = btn.dataset.category;
       renderAll();
-    });
+    };
   });
-}
-
-// ── Search ─────────────────────────────────────
-function initSearch() {
-  const input = document.getElementById('mapSearchInput');
-  if (!input) return;
-  input.addEventListener('input', () => {
-    searchQuery = input.value.trim();
-    renderAll();
-  });
-}
-
-// ── Boot ───────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  initMap();
-  initFilters();
-  initSearch();
-  loadPlaces();
-
-  // If logged in, update dashboard button
-  if (typeof isLoggedIn === 'function' && isLoggedIn()) {
-    const dashBtn = document.querySelector('a[href="login.html"]');
-    if (dashBtn) {
-      dashBtn.href = 'dashboard.html';
-      dashBtn.textContent = 'Dashboard';
-    }
-  }
 });

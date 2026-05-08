@@ -20,7 +20,32 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Initial welcome message (already in HTML, but could be dynamic)
+  loadHistory();
 });
+
+function handleEnter(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function sendSuggestion(text) {
+  const input = document.getElementById('chatInput');
+  if (input) {
+    input.value = text;
+    sendMessage();
+  }
+}
+
+async function loadHistory() {
+  // Mock history loading or fetch from local storage
+  const saved = localStorage.getItem('er_chat_history');
+  if (saved) {
+    const list = document.getElementById('chatHistory');
+    // We could populate the sidebar with titles
+  }
+}
 
 async function sendMessage() {
   const input = document.getElementById('chatInput');
