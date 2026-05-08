@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Management — Admin — EchoRoots</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    .admin-layout { display: flex; min-height: 100svh; }
+    .main-content { flex: 1; padding: 40px; }
+    @media (max-width: 900px) { .main-content { margin-left: 0; padding: 20px; } .sidebar { display: none; } }
+    
+    .user-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+    .user-table th { text-align: left; padding: 12px 16px; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .user-row { background: var(--bg-card); border: 1px solid var(--border); transition: var(--transition); }
+    .user-row:hover { border-color: var(--saffron); transform: translateX(4px); }
+    .user-cell { padding: 16px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .user-cell:first-child { border-left: 1px solid var(--border); border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+    .user-cell:last-child { border-right: 1px solid var(--border); border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+  </style>
+</head>
+<body>
+
+<div class="admin-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="flex items-center gap-3">
+        <a href="admin.html" class="back-btn" style="margin:0;"><i class="fa-solid fa-arrow-left"></i></a>
+        <a href="/" class="nav-logo">
+          <div class="nav-logo-icon"><i class="fa-solid fa-location-dot" style="color:white;font-size:0.85rem;"></i></div>
+          <span class="nav-logo-text">Echo<span>Roots</span></span>
+        </a>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-section-label">Administration</div>
+      <a href="admin.html" class="sidebar-nav-item"><i class="fa-solid fa-chart-line"></i> <span>Dashboard</span></a>
+      <a href="admin-users.html" class="sidebar-nav-item active"><i class="fa-solid fa-users"></i> <span>User Management</span></a>
+      <a href="admin-events.html" class="sidebar-nav-item"><i class="fa-solid fa-calendar-check"></i> <span>Event Moderation</span></a>
+      
+      <div class="sidebar-section-label">Exit</div>
+      <a href="dashboard.html" class="sidebar-nav-item"><i class="fa-solid fa-house"></i> <span>Back to Site</span></a>
+      <a href="#" class="sidebar-nav-item" id="logoutBtn" style="color:var(--pink);"><i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span></a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="flex justify-between items-center" style="margin-bottom:32px;">
+      <div>
+        <h1 style="font-size:2rem; letter-spacing:-0.03em;">User Management</h1>
+        <p style="color:var(--text-muted);">Manage and monitor platform explorers</p>
+      </div>
+      <div class="flex gap-3">
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-muted);"></i>
+          <input type="text" id="userSearch" class="form-input" placeholder="Search name, email..." style="padding-left:36px; width:280px;" oninput="loadUsers()" />
+        </div>
+        <select id="userSort" class="form-input" onchange="loadUsers()">
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="xp">Highest XP</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="userTableContainer" style="overflow-x:auto;">
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Role</th>
+            <th>Progress</th>
+            <th>Joined</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="userList">
+          <!-- Dynamically loaded -->
+        </tbody>
+      </table>
+      <div id="emptyState" style="display:none; text-align:center; padding:60px;">
+        <i class="fa-solid fa-users-slash" style="font-size:3rem; color:var(--border); margin-bottom:16px;"></i>
+        <p style="color:var(--text-muted);">No users matching your criteria.</p>
+      </div>
+      <div id="loadingSpinner" style="text-align:center; padding:40px;">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="js/script.js"></script>
+<script>
+  async function loadUsers() {
+    const search = document.getElementById('userSearch').value;
+    const sortBy = document.getElementById('userSort').value;
+    const container = document.getElementById('userList');
+    const spinner = document.getElementById('loadingSpinner');
+    const empty = document.getElementById('emptyState');
+
+    spinner.style.display = 'block';
+    empty.style.display = 'none';
+
+    try {
+      const res = await apiFetch(`/api/admin/data?type=user&search=${search}&sortBy=${sortBy}`);
+      spinner.style.display = 'none';
+
+      if (res.success) {
+        const users = res.data;
+        if (users.length === 0) {
+          container.innerHTML = '';
+          empty.style.display = 'block';
+          return;
+        }
+
+        container.innerHTML = users.map(u => `
+          <tr class="user-row reveal" id="user-${u._id}">
+            <td class="user-cell">
+              <div class="flex items-center gap-3">
+                <div style="width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg, var(--saffron), var(--pink)); display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:0.8rem;">
+                  ${u.avatar ? `<img src="${u.avatar}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">` : u.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div style="font-weight:600; font-size:0.9rem;">${u.name}</div>
+                  <div style="font-size:0.75rem; color:var(--text-muted);">${u.email}</div>
+                </div>
+              </div>
+            </td>
+            <td class="user-cell">
+              <span class="badge ${u.role === 'admin' ? 'badge-purple' : 'badge-teal'}" style="font-size:0.65rem;">${u.role}</span>
+            </td>
+            <td class="user-cell">
+              <div style="font-size:0.85rem; font-weight:700;">Lvl ${u.level || 1}</div>
+              <div style="font-size:0.75rem; color:var(--saffron); font-weight:600;">${u.xp || 0} XP</div>
+            </td>
+            <td class="user-cell" style="font-size:0.8rem; color:var(--text-muted);">
+              ${new Date(u.createdAt).toLocaleDateString()}
+            </td>
+            <td class="user-cell">
+              <div class="flex gap-2">
+                <button class="btn btn-secondary btn-sm" onclick="editUser('${u._id}')" style="padding:6px 10px;"><i class="fa-solid fa-pen"></i></button>
+                <button class="btn btn-secondary btn-sm" onclick="deleteUser('${u._id}')" style="padding:6px 10px; color:#ef4444;"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+        initScrollReveal();
+      }
+    } catch (e) {
+      spinner.style.display = 'none';
+      showToast('Failed to load users', 'error');
+    }
+  }
+
+  async function deleteUser(id) {
+    if (!confirm('Are you sure you want to delete this user? This action is permanent.')) return;
+    const remark = prompt('Reason for deletion (optional):');
+    try {
+      const res = await apiFetch('/api/admin/delete', {
+        method: 'POST',
+        body: JSON.stringify({ type: 'user', id, remark: remark || 'Admin cleanup' })
+      });
+      if (res.success) {
+        showToast('User deleted');
+        document.getElementById('user-' + id).remove();
+      }
+    } catch (e) { showToast('Error deleting user', 'error'); }
+  }
+
+  function editUser(id) {
+    // Implement edit modal if needed, or redirect to profile edit
+    window.location.href = `profile.html?id=${id}`;
+  }
+
+  window.onload = function() {
+    if (requireAuth()) {
+      const user = getUser();
+      if (user.role !== 'admin') window.location.href = 'dashboard.html';
+      loadUsers();
+    }
+  };
+</script>
+</body>
+</html>

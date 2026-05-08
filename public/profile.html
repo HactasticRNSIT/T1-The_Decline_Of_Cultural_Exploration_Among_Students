@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Profile — EchoRoots</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    .profile-layout { display: flex; min-height: 100svh; }
+    .main-content { flex: 1; padding: 40px; }
+    
+    .profile-header-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      display: flex;
+      gap: 30px;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    
+    .profile-avatar-large {
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--saffron), var(--pink));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3rem; font-weight: 800; color: white;
+      flex-shrink: 0; box-shadow: var(--shadow-lg);
+    }
+
+    .stat-badge {
+      padding: 12px 20px;
+      background: var(--bg-muted);
+      border-radius: var(--radius-md);
+      text-align: center;
+      min-width: 100px;
+    }
+    .stat-val { font-family: var(--font-display); font-size: 1.4rem; font-weight: 800; color: var(--saffron); }
+    .stat-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700; }
+
+    .profile-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
+    .tabs { display: flex; gap: 20px; border-bottom: 1px solid var(--border); margin-bottom: 25px; }
+    .tab-btn { padding: 10px 5px; cursor: pointer; color: var(--text-muted); font-weight: 600; border-bottom: 2px solid transparent; transition: 0.2s; }
+    .tab-btn.active { color: var(--saffron); border-color: var(--saffron); }
+    
+    .timeline-item { padding: 20px; border-left: 2.5px solid var(--border); position: relative; margin-left: 10px; margin-bottom: 10px; transition: 0.2s; }
+    .timeline-item:hover { background: var(--bg-muted); border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+    .timeline-item::before { content: ''; position: absolute; left: -7.5px; top: 25px; width: 12px; height: 12px; border-radius: 50%; background: var(--border); border: 2.5px solid var(--bg-card); }
+    .timeline-item:hover::before { background: var(--saffron); border-color: var(--saffron); }
+
+    @media (max-width: 900px) {
+      .main-content { margin-left: 0; padding: 20px; }
+      .profile-header-card { flex-direction: column; text-align: center; }
+      .profile-grid { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="profile-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="flex items-center gap-3">
+        <a href="dashboard.html" class="back-btn" style="margin:0;"><i class="fa-solid fa-arrow-left"></i></a>
+        <a href="/" class="nav-logo">
+          <div class="nav-logo-icon"><i class="fa-solid fa-location-dot" style="color:white;font-size:0.85rem;"></i></div>
+          <span class="nav-logo-text">Echo<span>Roots</span></span>
+        </a>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-section-label">Main</div>
+      <a href="dashboard.html" class="sidebar-nav-item"><i class="fa-solid fa-house"></i> <span>Dashboard</span></a>
+      <a href="map.html" class="sidebar-nav-item"><i class="fa-solid fa-map-location-dot"></i> <span>Explore Map</span></a>
+      <a href="ai-guide.html" class="sidebar-nav-item"><i class="fa-solid fa-robot"></i> <span>AI Guide</span></a>
+      <a href="quests.html" class="sidebar-nav-item"><i class="fa-solid fa-trophy"></i> <span>Quests</span></a>
+      <a href="events.html" class="sidebar-nav-item"><i class="fa-solid fa-calendar-days"></i> <span>Events</span></a>
+
+      <div class="sidebar-section-label">Account</div>
+      <a href="profile.html" class="sidebar-nav-item active"><i class="fa-solid fa-user"></i> <span>Profile</span></a>
+      <a href="admin.html" class="sidebar-nav-item admin-only" style="display:none;"><i class="fa-solid fa-lock"></i> <span>Admin Panel</span></a>
+      <a href="#" class="sidebar-nav-item" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span></a>
+    </div>
+  </aside>
+
+  <main class="main-content chat-container">
+    <div class="profile-header-card reveal">
+      <div class="profile-avatar-large" id="profileAvatar">?</div>
+      <div style="flex:1;">
+        <div class="flex justify-between items-start" style="margin-bottom:12px;">
+          <div class="flex flex-column gap-1">
+            <h2 style="font-size:1.8rem;letter-spacing:-0.03em;" id="profileName">User Name</h2>
+            <p style="color:var(--text-secondary);max-width:500px;font-size:0.95rem;line-height:1.6;" id="profileBio">Cultural Explorer</p>
+          </div>
+          <div id="profileActions" style="margin-left:auto; display:flex; gap:10px;">
+            <button class="btn btn-secondary btn-sm" id="editProfileBtn" style="display:none;" onclick="openEditModal()"><i class="fa-solid fa-pen"></i> Edit Profile</button>
+          </div>
+        </div>
+        <div class="flex gap-4" style="margin-top:24px;flex-wrap:wrap;">
+          <div class="stat-badge">
+            <div class="stat-val" id="profileLevel">1</div>
+            <div class="stat-label">Level</div>
+          </div>
+          <div class="stat-badge">
+            <div class="stat-val" id="profileXP">0</div>
+            <div class="stat-label">Total XP</div>
+          </div>
+          <div class="stat-badge">
+            <div class="stat-val" id="profileStreak">0</div>
+            <div class="stat-label">Streak</div>
+          </div>
+          <div class="stat-badge">
+            <div class="stat-val" id="profileFollowers">0</div>
+            <div class="stat-label">Followers</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-grid">
+      <!-- Left Column -->
+      <div class="reveal">
+        <div class="tabs">
+          <div class="tab-btn active" onclick="switchTab('timeline')">Timeline</div>
+          <div class="tab-btn" onclick="switchTab('achievements')">Achievements</div>
+          <div class="tab-btn" onclick="switchTab('saved')">Saved</div>
+        </div>
+
+        <div id="tabContent">
+          <!-- Timeline View -->
+          <div id="timelineTab">
+            <h3 style="margin-bottom:20px;">Your Exploration Timeline</h3>
+            <div id="timelineList" class="flex flex-column gap-3">
+              <!-- Timeline items injected -->
+              <div class="spinner"></div>
+            </div>
+          </div>
+
+          <!-- Achievements View -->
+          <div id="achievementsTab" style="display:none;">
+            <h3 style="margin-bottom:20px;">Unlocked Achievements</h3>
+            <div id="badgesGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:20px;">
+              <!-- Badges injected -->
+            </div>
+          </div>
+
+          <!-- Saved View -->
+          <div id="savedTab" style="display:none;">
+            <h3 style="margin-bottom:20px;">Saved for Later</h3>
+            <div id="savedList" class="flex flex-column gap-3">
+              <!-- Saved items injected -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="reveal" style="display:flex;flex-direction:column;gap:25px;">
+        <div class="card">
+          <div class="card-body">
+            <h4 style="margin-bottom:15px;">Following</h4>
+            <div id="followingList" class="flex flex-column gap-4">
+              <p style="color:var(--text-muted);font-size:0.85rem;">Not following anyone yet.</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-body">
+            <h4 style="margin-bottom:15px;">Activity Map</h4>
+            <div style="height:200px;background:var(--bg-muted);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:0.8rem;">
+              Interactive Map coming soon
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Edit Profile Modal -->
+<div id="editModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
+  <div style="background:var(--bg-card); padding:32px; border-radius:var(--radius-lg); max-width:480px; width:92%; position:relative; box-shadow:0 20px 50px rgba(0,0,0,0.3); border:1px solid var(--border);">
+    <button onclick="closeEditModal()" style="position:absolute; top:20px; right:20px; background:none; border:none; font-size:1.4rem; cursor:pointer; color:var(--text-muted); transition:var(--transition);"><i class="fa-solid fa-times"></i></button>
+    <h3 style="font-family:var(--font-display); font-size:1.5rem; margin-bottom:8px;">Edit Profile</h3>
+    <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:24px;">Update your public profile details.</p>
+    
+    <form id="editProfileForm" onsubmit="handleProfileUpdate(event)">
+      <div class="form-group" style="margin-bottom:18px;">
+        <label class="form-label" style="display:block; margin-bottom:8px; font-weight:600; font-size:0.85rem; color:var(--text-secondary);">Full Name</label>
+        <input type="text" id="editName" class="form-input" required style="width:100%; padding:12px; border-radius:var(--radius-md); border:1.5px solid var(--border); background:var(--bg); color:var(--text-primary); outline:none;" />
+      </div>
+      <div class="form-group" style="margin-bottom:18px;">
+        <label class="form-label" style="display:block; margin-bottom:8px; font-weight:600; font-size:0.85rem; color:var(--text-secondary);">Bio</label>
+        <textarea id="editBio" class="form-input" rows="3" style="width:100%; padding:12px; border-radius:var(--radius-md); border:1.5px solid var(--border); background:var(--bg); color:var(--text-primary); outline:none;"></textarea>
+      </div>
+      <div class="form-group" style="margin-bottom:24px;">
+        <label class="form-label" style="display:block; margin-bottom:8px; font-weight:600; font-size:0.85rem; color:var(--text-secondary);">Avatar URL</label>
+        <input type="text" id="editAvatar" class="form-input" placeholder="https://..." style="width:100%; padding:12px; border-radius:var(--radius-md); border:1.5px solid var(--border); background:var(--bg); color:var(--text-primary); outline:none;" />
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%; padding:14px; font-weight:600; font-family:var(--font-ui); border-radius:var(--radius-md);">Save Changes</button>
+    </form>
+  </div>
+</div>
+
+<script src="js/script.js"></script>
+<script src="js/profile.js"></script>
+</body>
+</html>
