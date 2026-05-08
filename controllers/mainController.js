@@ -26,6 +26,79 @@ const getPlaceById = async (req, res) => {
   }
 };
 
+const addPlaceFeedback = async (req, res) => {
+  try {
+    const { rating, text } = req.body;
+    const place = await CulturalPlace.findById(req.params.id);
+    if (!place) return res.status(404).json({ success: false, message: 'Place not found' });
+
+    const comment = new Comment({ 
+      place: place._id, 
+      author: req.user._id, 
+      text, 
+      rating: rating || 0 
+    });
+    await comment.save();
+
+    // Update place rating (simple average)
+    const allComments = await Comment.find({ place: place._id, rating: { $gt: 0 } });
+    if (allComments.length > 0) {
+      const avg = allComments.reduce((acc, c) => acc + c.rating, 0) / allComments.length;
+      place.rating = avg;
+      await place.save();
+    }
+
+    res.json({ success: true, data: comment });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getPlaceFeedback = async (req, res) => {
+  try {
+    const comments = await Comment.find({ place: req.params.id })
+      .populate('author', 'name avatar')
+      .sort({ createdAt: -1 });
+    res.json({ success: true, data: comments });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const savePlace = async (req, res) => {
+  try {
+    const place = await CulturalPlace.findById(req.params.id);
+    if (!place) return res.status(404).json({ success: false, message: 'Place not found' });
+    const user = await User.findById(req.user._id);
+    if (user.savedPlaces.includes(place._id)) {
+      user.savedPlaces = user.savedPlaces.filter(p => p.toString() !== place._id.toString());
+    } else {
+      user.savedPlaces.push(place._id);
+    }
+    await user.save();
+    res.json({ success: true, message: 'Place bookmark toggled', data: { saved: user.savedPlaces.includes(place._id) } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const saveStory = async (req, res) => {
+  try {
+    const story = await Story.findById(req.params.id);
+    if (!story) return res.status(404).json({ success: false, message: 'Story not found' });
+    const user = await User.findById(req.user._id);
+    if (user.savedStories.includes(story._id)) {
+      user.savedStories = user.savedStories.filter(s => s.toString() !== story._id.toString());
+    } else {
+      user.savedStories.push(story._id);
+    }
+    await user.save();
+    res.json({ success: true, message: 'Story bookmark toggled', data: { saved: user.savedStories.includes(story._id) } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 const seedPlaces = async (req, res) => {
   try {
     const samplePlaces = [
@@ -140,7 +213,7 @@ const getEvents = async (req, res) => {
     const filter = { status: 'approved' };
     if (category) filter.category = category;
     if (city) filter['location.city'] = new RegExp(city, 'i');
-    const events = await Event.find(filter).sort({ date: 1 }).populate('organizers', 'name avatar').populate('likes', '_id').populate('dislikes', '_id');
+    const events = await Event.find(filter).sort({ createdAt: -1 }).populate('organizers', 'name avatar').populate('likes', '_id').populate('dislikes', '_id');
     res.json({ success: true, data: events });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -191,8 +264,30 @@ const seedEvents = async (req, res) => {
 // ─── Stories ──────────────────────────────────────────────────────────────────
 const getStories = async (req, res) => {
   try {
-    const stories = await Story.find().populate('place', 'name location').sort({ createdAt: -1 }).limit(20);
+    const stories = await Story.find()
+      .populate('place', 'name location')
+      .populate('authorUser', 'name avatar')
+      .sort({ createdAt: -1 })
+      .limit(20);
     res.json({ success: true, data: stories });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const createStory = async (req, res) => {
+  try {
+    const { title, content, summary, tags, images } = req.body;
+    const story = await Story.create({
+      title,
+      content,
+      summary,
+      tags: tags || [],
+      images: images || [],
+      author: req.user.name,
+      authorUser: req.user._id
+    });
+    res.status(201).json({ success: true, data: story });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -217,8 +312,21 @@ const seedStories = async (req, res) => {
 // ─── Leaderboard ──────────────────────────────────────────────────────────────
 const getLeaderboard = async (req, res) => {
   try {
-    const users = await User.find().select('name xp level streak badges').sort({ xp: -1 }).limit(20);
-    const ranked = users.map((u, i) => ({ rank: i + 1, name: u.name, xp: u.xp, level: u.level, streak: u.streak }));
+    const limit = req.user ? 20 : 10;
+    const users = await User.find({ role: { $ne: 'admin' } })
+      .select('name xp level streak avatar')
+      .sort({ xp: -1 })
+      .limit(limit);
+    const ranked = users.map((u, i) => ({ 
+      _id: u._id,
+      rank: i + 1, 
+      name: u.name, 
+      xp: u.xp, 
+      level: u.level, 
+      streak: u.streak,
+      avatar: u.avatar,
+      isMe: req.user && u._id.toString() === req.user._id.toString()
+    }));
     res.json({ success: true, data: ranked });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -230,7 +338,7 @@ const { GoogleGenAI } = require('@google/genai');
 
 const getAIResponse = async (req, res) => {
   try {
-    const { message, history } = req.body;
+    const { message, history, topic } = req.body;
     
     // Add XP for using AI guide
     if (req.user) {
@@ -253,10 +361,15 @@ const getAIResponse = async (req, res) => {
       });
     }
 
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY, apiVersion: 'v1' });
     
-    const prompt = `You are the EchoRoots AI Cultural Guide. You know India's 5,000+ year cultural history.
-Answer the following user question briefly, engagingly, and accurately about Indian culture, heritage, food, or festivals. Keep the response under 100 words.
+    let systemPrompt = "You are the EchoRoots AI Cultural Guide. You know India's 5,000+ year cultural history.";
+    if (topic === 'vedic') systemPrompt += " Focus specifically on Vedic history, ancient scriptures, and philosophical traditions.";
+    if (topic === 'family') systemPrompt += " Help the user understand how to research their Indian ancestry, gotras, and family lineages.";
+    if (topic === 'language') systemPrompt += " Focus on the evolution, scripts, and literary history of Indian languages.";
+    
+    const prompt = `${systemPrompt}
+Answer the following user question briefly, engagingly, and accurately about Indian culture. Keep the response under 150 words.
 User: ${message}`;
 
     const response = await ai.models.generateContent({
@@ -284,7 +397,7 @@ const generateTrivia = async (req, res) => {
     if (!process.env.GEMINI_API_KEY) {
       return res.status(400).json({ success: false, message: 'Gemini API Key missing' });
     }
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY, apiVersion: 'v1' });
     const prompt = `Generate a single multiple-choice trivia question about Indian culture, history, or heritage.
 Return ONLY a valid JSON object in this exact format:
 {
@@ -308,7 +421,7 @@ const translateText = async (req, res) => {
     if (!process.env.GEMINI_API_KEY) {
       return res.status(400).json({ success: false, message: 'Gemini API Key missing' });
     }
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY, apiVersion: 'v1' });
     const prompt = `Translate the following text to ${targetLang}. Return ONLY the translated text, nothing else.
 Text: ${text}`;
     const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
@@ -334,7 +447,7 @@ const verifyQuestPhoto = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Quest already completed' });
     }
 
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY, apiVersion: 'v1' });
     
     // Strip the data:image/jpeg;base64, prefix if present
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
@@ -381,17 +494,28 @@ Answer with only "YES" or "NO".`;
 const createEvent = async (req, res) => {
   try {
     const { title, description, category, location, date, price, tags, xpReward, images, coOrganizers } = req.body;
-    let organizers = [req.user._id];
-    if (coOrganizers && Array.isArray(coOrganizers)) {
-      organizers = [...organizers, ...coOrganizers];
-    }
-    const newEvent = new Event({
-      title, description, category, location, date, price, tags, xpReward, images, organizers,
+    
+    // Explicitly create the event object to avoid any hidden body properties
+    const eventData = {
+      title, 
+      description, 
+      category, 
+      location, 
+      date, 
+      price, 
+      tags: Array.isArray(tags) ? tags : [],
+      xpReward: Number(xpReward) || 50, 
+      images: Array.isArray(images) ? images : [], 
+      organizers: [req.user._id], // Only the creator
+      coOrganizerNames: Array.isArray(coOrganizers) ? coOrganizers.map(n => String(n)) : [],
       status: req.user.role === 'admin' ? 'approved' : 'pending'
-    });
+    };
+    
+    const newEvent = new Event(eventData);
     await newEvent.save();
     res.json({ success: true, message: 'Event submitted for approval', data: newEvent });
   } catch (error) {
+    console.error('Create Event Error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -460,7 +584,7 @@ const getEventComments = async (req, res) => {
 
 const getPendingEvents = async (req, res) => {
   try {
-    const events = await Event.find({ status: 'pending' }).populate('organizers', 'name');
+    const events = await Event.find({ status: 'pending' }).sort({ createdAt: -1 }).populate('organizers', 'name');
     res.json({ success: true, data: events });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -494,28 +618,237 @@ const rejectEvent = async (req, res) => {
 
 const getAdminStats = async (req, res) => {
   try {
-    const [totalUsers, totalEvents, pendingEvents, approvedEvents, rejectedEvents, totalComments] = await Promise.all([
+    const [totalUsers, totalEvents, pendingEvents, approvedEvents, rejectedEvents, totalComments, totalPlaces, totalQuests] = await Promise.all([
       User.countDocuments(),
       Event.countDocuments(),
       Event.countDocuments({ status: 'pending' }),
       Event.countDocuments({ status: 'approved' }),
       Event.countDocuments({ status: 'rejected' }),
-      Comment.countDocuments()
+      Comment.countDocuments(),
+      CulturalPlace.countDocuments(),
+      Quest.countDocuments()
     ]);
-    res.json({ success: true, data: { totalUsers, totalEvents, pendingEvents, approvedEvents, rejectedEvents, totalComments } });
+    
+    // Get recent activity
+    const recentUsers = await User.find().sort({ createdAt: -1 }).limit(5).select('name email createdAt');
+    const recentComments = await Comment.find().sort({ createdAt: -1 }).limit(5).populate('author', 'name').populate('event', 'title');
+
+    res.json({ 
+      success: true, 
+      data: { 
+        stats: { totalUsers, totalEvents, pendingEvents, approvedEvents, rejectedEvents, totalComments, totalPlaces, totalQuests },
+        recentUsers,
+        recentComments
+      } 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getFilteredAdminData = async (req, res) => {
+  try {
+    const { type, status, search, sortBy } = req.query;
+    let data = [];
+    let filter = {};
+    let sort = { createdAt: -1 };
+
+    if (type === 'user') {
+      if (search) {
+        filter.$or = [
+          { name: new RegExp(search, 'i') },
+          { email: new RegExp(search, 'i') },
+          { role: new RegExp(search, 'i') }
+        ];
+      }
+      if (sortBy === 'xp') sort = { xp: -1 };
+      else if (sortBy === 'oldest') sort = { createdAt: 1 };
+      data = await User.find(filter).sort(sort);
+    } else if (type === 'event') {
+      if (status) filter.status = status;
+      if (search) filter.title = new RegExp(search, 'i');
+      data = await Event.find(filter).populate('organizers', 'name').sort(sort);
+    } else if (type === 'place') {
+      if (search) filter.name = new RegExp(search, 'i');
+      data = await CulturalPlace.find(filter).sort(sort);
+    } else if (type === 'quest') {
+      if (search) filter.title = new RegExp(search, 'i');
+      data = await Quest.find(filter).sort(sort);
+    }
+
+    res.json({ success: true, data });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const deleteEntityWithRemark = async (req, res) => {
+  try {
+    const { type, id, remark } = req.body;
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Forbidden' });
+
+    let deleted;
+    if (type === 'event') deleted = await Event.findByIdAndDelete(id);
+    else if (type === 'user') deleted = await User.findByIdAndDelete(id);
+    else if (type === 'place') deleted = await CulturalPlace.findByIdAndDelete(id);
+    else if (type === 'quest') deleted = await Quest.findByIdAndDelete(id);
+
+    if (!deleted) return res.status(404).json({ success: false, message: 'Entity not found' });
+
+    console.log(`Admin deleted ${type} ${id} with remark: ${remark}`);
+    res.json({ success: true, message: 'Deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id)
+      .populate('completedQuests')
+      .populate('savedEvents')
+      .populate('savedPlaces')
+      .populate('savedStories')
+      .populate('followers', 'name avatar')
+      .populate('following', 'name avatar');
+    res.json({ success: true, data: user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getOtherUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select('name avatar bio level xp streak badges followers following')
+      .populate('followers', 'name avatar')
+      .populate('following', 'name avatar');
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    res.json({ success: true, data: user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const updateUserProfile = async (req, res) => {
+  try {
+    const { name, bio, avatar, preferences } = req.body;
+    const user = await User.findById(req.user._id);
+    if (name) user.name = name;
+    if (bio) user.bio = bio;
+    if (avatar) user.avatar = avatar;
+    if (preferences) user.preferences = { ...user.preferences, ...preferences };
+    await user.save();
+    res.json({ success: true, data: user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const toggleFollow = async (req, res) => {
+  try {
+    const targetId = req.params.id;
+    if (targetId === req.user._id.toString()) {
+      return res.status(400).json({ success: false, message: 'Cannot follow yourself' });
+    }
+    const user = await User.findById(req.user._id);
+    const target = await User.findById(targetId);
+    if (!target) return res.status(404).json({ success: false, message: 'User not found' });
+
+    if (user.following.includes(targetId)) {
+      user.following.pull(targetId);
+      target.followers.pull(user._id);
+    } else {
+      user.following.push(targetId);
+      target.followers.push(user._id);
+    }
+    await user.save();
+    await target.save();
+    res.json({ success: true, following: user.following.includes(targetId) });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const updateStreak = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    const now = new Date();
+    const lastActive = new Date(user.lastActive);
+    
+    // Difference in days
+    const diffTime = Math.abs(now - lastActive);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 1) {
+      user.streak += 1;
+      user.xp += 20; // Streak bonus
+    } else if (diffDays > 1) {
+      user.streak = 1;
+    }
+    
+    user.lastActive = now;
+    user.calculateLevel();
+    await user.save();
+    
+    res.json({ success: true, streak: user.streak, xp: user.xp });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getHomeDashboard = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('name level xp streak avatar following followers');
+    
+    // Nearby/Upcoming approved events
+    const nearbyEvents = await Event.find({ status: 'approved' }).sort({ date: 1 }).limit(5);
+    
+    // Top events (most likes)
+    const topEvents = await Event.find({ status: 'approved' })
+      .sort({ likes: -1 })
+      .limit(4);
+
+    res.json({ 
+      success: true, 
+      data: { 
+        user, 
+        nearbyEvents, 
+        topEvents 
+      } 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getUserTimeline = async (req, res) => {
+  try {
+    const { lat, lng } = req.query; // current location from frontend
+    const events = await Event.find({ status: 'approved' }).sort({ date: 1 });
+    const quests = await Quest.find({}).sort({ createdAt: -1 });
+    
+    // Simple timeline construction
+    const timeline = [
+      ...events.map(e => ({ type: 'event', data: e, date: e.date })),
+      ...quests.map(q => ({ type: 'quest', data: q, date: q.createdAt }))
+    ].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    res.json({ success: true, data: timeline });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
 module.exports = {
-  getPlaces, getPlaceById, seedPlaces,
+  getPlaces, getPlaceById, seedPlaces, addPlaceFeedback, getPlaceFeedback, savePlace, saveStory,
   getQuests, completeQuest, seedQuests,
   getEvents, saveEvent, seedEvents,
-  getStories, seedStories,
+  getStories, createStory, seedStories,
   getLeaderboard,
   getAIResponse,
   generateTrivia, translateText, verifyQuestPhoto,
   createEvent, likeEvent, dislikeEvent, addEventComment, getEventComments, getPendingEvents, approveEvent, rejectEvent,
-  getAdminStats
+  getAdminStats, getFilteredAdminData, deleteEntityWithRemark,
+  getUserProfile, getOtherUserProfile, updateUserProfile, toggleFollow, updateStreak, getUserTimeline, getHomeDashboard
 };

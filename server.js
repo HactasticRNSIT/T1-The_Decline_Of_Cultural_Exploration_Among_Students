@@ -1,4 +1,6 @@
+require('node:dns/promises').setServers(['8.8.8.8']);
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
