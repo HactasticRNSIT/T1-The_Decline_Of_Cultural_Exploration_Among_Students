@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Events — EchoRoots</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    .quests-layout { display: flex; min-height: 100svh; }
+
+    .sidebar {
+      width: 240px;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: 0; left: 0;
+      height: 100svh;
+      display: flex;
+      flex-direction: column;
+      z-index: 200;
+    }
+
+    .sidebar-logo {
+      height: 68px;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .sidebar-nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
+
+    .sidebar-section-label {
+      font-family: var(--font-ui);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 0 8px;
+      margin: 16px 0 6px;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: var(--radius-md);
+      font-family: var(--font-ui);
+      font-size: 0.86rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: var(--transition);
+      margin-bottom: 2px;
+    }
+
+    .sidebar-item:hover { background: var(--bg-muted); color: var(--text-primary); }
+    .sidebar-item.active { background: rgba(249,115,22,0.08); color: var(--saffron); font-weight: 600; }
+    .sidebar-item .sidebar-icon { width: 18px; text-align: center; }
+
+    .main-content { margin-left: 240px; flex: 1; min-height: 100svh; }
+
+    .page-topbar {
+      height: 68px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 32px;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .page-content { padding: 32px; max-width: 1100px; }
+
+    /* Event card */
+    .events-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .event-card-new {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: var(--transition);
+    }
+
+    .event-card-new:hover {
+      border-color: var(--border-hover);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-3px);
+    }
+
+    .event-card-header-bar {
+      height: 6px;
+    }
+
+    .event-card-body-inner { padding: 20px; }
+
+    .event-date-block {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .event-cal {
+      width: 48px; height: 48px;
+      border-radius: var(--radius-md);
+      background: var(--bg-muted);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .event-cal-month {
+      font-family: var(--font-ui);
+      font-size: 0.6rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 2px 0;
+      width: 100%;
+      text-align: center;
+      color: white;
+    }
+
+    .event-cal-day {
+      font-family: var(--font-ui);
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: var(--text-primary);
+      line-height: 1;
+      padding: 4px 0;
+    }
+
+    .event-countdown {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      background: var(--bg-muted);
+      border-radius: var(--radius-full);
+      font-family: var(--font-ui);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .event-countdown.soon { background: rgba(249,115,22,0.08); color: var(--saffron); }
+    .event-countdown.live { background: rgba(16,185,129,0.1); color: #10B981; }
+
+    .event-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      margin-top: 16px;
+    }
+
+    .bookmark-btn {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-md);
+      border: 1.5px solid var(--border);
+      background: var(--bg-card);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+
+    .bookmark-btn:hover { border-color: var(--saffron); color: var(--saffron); }
+    .bookmark-btn.saved { border-color: var(--saffron); color: var(--saffron); background: rgba(249,115,22,0.06); }
+
+    .price-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      font-family: var(--font-ui);
+      font-size: 0.73rem;
+      font-weight: 700;
+    }
+
+    .price-free { background: rgba(16,185,129,0.1); color: #10B981; }
+    .price-paid { background: rgba(249,115,22,0.1); color: var(--saffron); }
+
+    .category-colors {
+      festival: var(--saffron);
+      workshop: var(--teal);
+      exhibition: var(--purple);
+      performance: var(--pink);
+      walk: var(--amber);
+      other: #94A3B8;
+    }
+
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .events-search {
+      padding: 9px 14px 9px 38px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-full);
+      font-family: var(--font-sans);
+      font-size: 0.88rem;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      outline: none;
+      width: 220px;
+      transition: var(--transition);
+    }
+
+    .events-search:focus { border-color: var(--saffron); }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main-content { margin-left: 0; }
+      .events-grid { grid-template-columns: 1fr; }
+      .page-content { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quests-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <a href="/" class="nav-logo">
+        <div class="nav-logo-icon"><i class="fa-solid fa-location-dot" style="color:white;font-size:0.85rem;"></i></div>
+        <span class="nav-logo-text">Echo<span>Roots</span></span>
+      </a>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Explore</div>
+      <a href="dashboard.html" class="sidebar-item"><span class="sidebar-icon"><i class="fa-solid fa-house"></i></span> Dashboard</a>
+      <a href="map.html" class="sidebar-item"><span class="sidebar-icon"><i class="fa-solid fa-map-location-dot"></i></span> Cultural Map</a>
+      <a href="ai-guide.html" class="sidebar-item"><span class="sidebar-icon"><i class="fa-solid fa-robot"></i></span> AI Guide</a>
+      <div class="sidebar-section-label">Progress</div>
+      <a href="quests.html" class="sidebar-item"><span class="sidebar-icon"><i class="fa-solid fa-trophy"></i></span> Quests</a>
+      <a href="events.html" class="sidebar-item active"><span class="sidebar-icon"><i class="fa-solid fa-calendar-days"></i></span> Events</a>
+    </nav>
+    <div style="padding:16px;border-top:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--radius-md);">
+        <div id="sidebarAvatar" style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--saffron),var(--pink));display:flex;align-items:center;justify-content:center;color:white;font-family:var(--font-ui);font-weight:700;font-size:0.85rem;flex-shrink:0;">?</div>
+        <div>
+          <div id="sidebarName" style="font-family:var(--font-ui);font-size:0.84rem;font-weight:600;">Guest</div>
+          <div id="sidebarLevel" style="font-size:0.75rem;color:var(--text-muted);">Level 1 Explorer</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div class="page-topbar">
+      <div>
+        <h4 style="font-size:1rem;font-weight:700;">Cultural Events</h4>
+        <div style="font-size:0.78rem;color:var(--text-muted);">Discover festivals, workshops, and experiences near you</div>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
+        <div id="savedCount" style="display:none;align-items:center;gap:6px;padding:6px 14px;background:rgba(236,72,153,0.08);border-radius:var(--radius-full);font-family:var(--font-ui);font-size:0.82rem;font-weight:700;color:var(--pink);">
+          <i class="fa-solid fa-bookmark"></i> <span id="savedCountNum">0</span> Saved
+        </div>
+        <a href="login.html" id="loginNavBtn" class="btn btn-primary btn-sm">Sign In</a>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <!-- Filter bar -->
+      <div class="filter-bar reveal">
+        <div style="position:relative;">
+          <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.8rem;"></i>
+          <input type="text" class="events-search" id="eventsSearch" placeholder="Search events..." oninput="searchEvents(this.value)" />
+        </div>
+        <div class="filter-pills">
+          <button class="filter-pill active" data-cat="all" onclick="filterByCategory('all', this)">All</button>
+          <button class="filter-pill" data-cat="festival" onclick="filterByCategory('festival', this)"><i class="fa-solid fa-star-and-crescent"></i> Festival</button>
+          <button class="filter-pill" data-cat="workshop" onclick="filterByCategory('workshop', this)"><i class="fa-solid fa-chalkboard"></i> Workshop</button>
+          <button class="filter-pill" data-cat="exhibition" onclick="filterByCategory('exhibition', this)"><i class="fa-solid fa-image"></i> Exhibition</button>
+          <button class="filter-pill" data-cat="performance" onclick="filterByCategory('performance', this)"><i class="fa-solid fa-masks-theater"></i> Performance</button>
+          <button class="filter-pill" data-cat="walk" onclick="filterByCategory('walk', this)"><i class="fa-solid fa-person-walking"></i> Heritage Walk</button>
+        </div>
+      </div>
+
+      <div id="loadingState" style="text-align:center;padding:60px 20px;">
+        <div class="spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div>
+        <div style="color:var(--text-muted);font-family:var(--font-ui);font-size:0.88rem;">Loading events...</div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;" id="eventsHeader" style="display:none;">
+        <div style="font-size:0.85rem;color:var(--text-muted);" id="eventsCount"></div>
+      </div>
+
+      <div class="events-grid" id="eventsGrid" style="display:none;"></div>
+
+      <div id="emptyState" style="display:none;text-align:center;padding:60px 20px;">
+        <i class="fa-solid fa-calendar-xmark" style="font-size:2.5rem;color:var(--border);margin-bottom:16px;"></i>
+        <div style="font-family:var(--font-ui);font-weight:600;color:var(--text-secondary);margin-bottom:6px;">No events found</div>
+        <div style="font-size:0.85rem;color:var(--text-muted);">Try a different filter or search term</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/script.js"></script>
+<script>
+  let allEvents = [];
+  let savedEventIds = [];
+  let currentCategory = 'all';
+  let searchTerm = '';
+
+  const categoryConfig = {
+    festival:    { color: '#F97316', label: 'Festival' },
+    workshop:    { color: '#06B6D4', label: 'Workshop' },
+    exhibition:  { color: '#7C3AED', label: 'Exhibition' },
+    performance: { color: '#EC4899', label: 'Performance' },
+    walk:        { color: '#F59E0B', label: 'Heritage Walk' },
+    other:       { color: '#94A3B8', label: 'Other' }
+  };
+
+  function init() {
+    const user = getUser();
+    if (user) {
+      document.getElementById('sidebarName').textContent = user.name;
+      document.getElementById('sidebarAvatar').textContent = user.name.charAt(0).toUpperCase();
+      document.getElementById('sidebarLevel').textContent = 'Level ' + user.level + ' Explorer';
+      document.getElementById('loginNavBtn').style.display = 'none';
+      savedEventIds = user.savedEvents || [];
+      updateSavedCount();
+    }
+    loadEvents();
+    initScrollReveal();
+  }
+
+  async function loadEvents() {
+    try {
+      const data = await apiFetch('/api/events');
+      allEvents = data.data || [];
+      renderEvents(allEvents);
+    } catch (e) {
+      document.getElementById('loadingState').innerHTML = '<div style="color:var(--text-muted);">Failed to load events. <button onclick="loadEvents()" style="color:var(--saffron);background:none;border:none;cursor:pointer;font-family:var(--font-ui);">Retry</button></div>';
+    }
+  }
+
+  function filterByCategory(cat, btn) {
+    currentCategory = cat;
+    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    applyFilters();
+  }
+
+  function searchEvents(val) {
+    searchTerm = val.toLowerCase();
+    applyFilters();
+  }
+
+  function applyFilters() {
+    let filtered = allEvents;
+    if (currentCategory !== 'all') filtered = filtered.filter(e => e.category === currentCategory);
+    if (searchTerm) filtered = filtered.filter(e =>
+      e.title.toLowerCase().includes(searchTerm) ||
+      (e.description || '').toLowerCase().includes(searchTerm) ||
+      (e.location && e.location.city || '').toLowerCase().includes(searchTerm)
+    );
+    renderEvents(filtered);
+  }
+
+  function getCountdown(date) {
+    const now = new Date();
+    const d = new Date(date);
+    const diff = d - now;
+    if (diff < 0) return { label: 'Past Event', cls: '' };
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    if (days === 0) return { label: 'Today', cls: 'live' };
+    if (days <= 7) return { label: 'In ' + days + ' day' + (days > 1 ? 's' : ''), cls: 'soon' };
+    if (days <= 30) return { label: 'In ' + days + ' days', cls: 'soon' };
+    const weeks = Math.floor(days / 7);
+    if (weeks < 8) return { label: 'In ' + weeks + ' week' + (weeks > 1 ? 's' : ''), cls: '' };
+    const months = Math.floor(days / 30);
+    return { label: 'In ' + months + ' month' + (months > 1 ? 's' : ''), cls: '' };
+  }
+
+  function renderEvents(events) {
+    const grid = document.getElementById('eventsGrid');
+    const loading = document.getElementById('loadingState');
+    const empty = document.getElementById('emptyState');
+    const header = document.getElementById('eventsHeader');
+    const count = document.getElementById('eventsCount');
+
+    loading.style.display = 'none';
+    header.style.display = 'flex';
+    count.textContent = events.length + ' event' + (events.length !== 1 ? 's' : '') + ' found';
+
+    if (!events.length) {
+      grid.style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+
+    empty.style.display = 'none';
+    grid.style.display = 'grid';
+
+    grid.innerHTML = events.map(ev => {
+      const cat = categoryConfig[ev.category] || categoryConfig.other;
+      const d = new Date(ev.date);
+      const month = d.toLocaleString('en-IN', { month: 'short' }).toUpperCase();
+      const day = d.getDate();
+      const countdown = getCountdown(ev.date);
+      const isSaved = savedEventIds.includes(ev._id);
+      const isFree = !ev.price || ev.price === 'Free';
+      const tags = (ev.tags || []).slice(0, 3);
+
+      return `
+        <div class="event-card-new reveal" id="ecard-${ev._id}">
+          <div class="event-card-header-bar" style="background:${cat.color};"></div>
+          <div class="event-card-body-inner">
+            <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;">
+              <div class="event-cal">
+                <div class="event-cal-month" style="background:${cat.color};">${month}</div>
+                <div class="event-cal-day">${day}</div>
+              </div>
+              <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px;">
+                  <span style="font-family:var(--font-ui);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:${cat.color};">${cat.label}</span>
+                  <span class="price-tag ${isFree ? 'price-free' : 'price-paid'}">${isFree ? '<i class="fa-solid fa-ticket"></i> Free' : ev.price}</span>
+                </div>
+                <h4 style="font-family:var(--font-ui);font-size:0.95rem;font-weight:700;line-height:1.3;margin-bottom:0;">${ev.title}</h4>
+              </div>
+            </div>
+
+            <p style="font-size:0.83rem;color:var(--text-secondary);line-height:1.55;margin-bottom:12px;">${ev.description || ''}</p>
+
+            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:0.8rem;color:var(--text-muted);">
+              ${ev.location ? `<div style="display:flex;align-items:center;gap:5px;">
+                <i class="fa-solid fa-location-dot" style="color:${cat.color};"></i>
+                <span>${ev.location.name ? ev.location.name + ', ' : ''}${ev.location.city || ''}</span>
+              </div>` : ''}
+              <div class="event-countdown ${countdown.cls}">
+                <i class="fa-regular fa-clock"></i> ${countdown.label}
+              </div>
+            </div>
+
+            ${tags.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;">
+              ${tags.map(t => `<span style="padding:3px 8px;background:var(--bg-muted);border-radius:var(--radius-full);font-size:0.73rem;color:var(--text-secondary);font-family:var(--font-ui);">${t}</span>`).join('')}
+            </div>` : ''}
+
+            <div class="event-actions">
+              <div style="display:flex;align-items:center;gap:5px;font-family:var(--font-ui);font-size:0.75rem;color:var(--text-muted);">
+                <i class="fa-solid fa-bolt" style="color:var(--saffron);"></i> +${ev.xpReward || 50} XP
+              </div>
+              <div style="flex:1;"></div>
+              <button class="bookmark-btn${isSaved ? ' saved' : ''}" id="bookmark-${ev._id}" onclick="toggleSave('${ev._id}', this)" title="${isSaved ? 'Saved' : 'Save event'}">
+                <i class="${isSaved ? 'fa-solid' : 'fa-regular'} fa-bookmark"></i>
+              </button>
+              <a href="map.html" class="btn btn-secondary btn-sm" style="font-size:0.78rem;">
+                <i class="fa-solid fa-map-pin"></i> View Map
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    initScrollReveal();
+  }
+
+  async function toggleSave(eventId, btn) {
+    const token = getToken();
+    if (!token) {
+      showToast('Sign in to save events');
+      setTimeout(() => { window.location.href = '/login.html'; }, 1500);
+      return;
+    }
+
+    btn.disabled = true;
+
+    try {
+      const data = await apiFetch('/api/events/' + eventId + '/save', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+
+      if (data.success) {
+        const isSaved = data.data.saved !== false;
+        btn.className = 'bookmark-btn' + (isSaved ? ' saved' : '');
+        btn.querySelector('i').className = (isSaved ? 'fa-solid' : 'fa-regular') + ' fa-bookmark';
+
+        if (isSaved) {
+          savedEventIds.push(eventId);
+        } else {
+          savedEventIds = savedEventIds.filter(id => id !== eventId);
+        }
+        updateSavedCount();
+        showToast(isSaved ? 'Event saved to your list' : 'Event removed from saved');
+      }
+    } catch (e) {
+      showToast('Failed to save event. Try again.');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function updateSavedCount() {
+    const badge = document.getElementById('savedCount');
+    const num = document.getElementById('savedCountNum');
+    if (savedEventIds.length > 0) {
+      badge.style.display = 'flex';
+      num.textContent = savedEventIds.length;
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>

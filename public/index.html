@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EchoRoots — Reconnect With Culture</title>
+  <meta name="description" content="Discover heritage, traditions, stories, food, and local experiences through AI-powered interactive exploration." />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    /* ── Landing-specific ── */
+    .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    @media(max-width:900px){.feature-grid{grid-template-columns:1fr 1fr;}}
+    @media(max-width:600px){.feature-grid{grid-template-columns:1fr;}}
+
+    .feature-card {
+      padding: 28px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--saffron), var(--pink));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform var(--transition-slow);
+    }
+
+    .feature-card:hover::before { transform: scaleX(1); }
+    .feature-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+
+    .feature-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      margin-bottom: 18px;
+    }
+
+    .how-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    @media(max-width:900px){.how-grid{grid-template-columns:1fr 1fr;}}
+    @media(max-width:600px){.how-grid{grid-template-columns:1fr;}}
+
+    .how-step {
+      text-align: center;
+      padding: 28px 20px;
+    }
+
+    .step-num {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--saffron), var(--pink));
+      color: white;
+      font-family: var(--font-ui);
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 18px;
+      box-shadow: 0 4px 14px rgba(249,115,22,0.3);
+    }
+
+    .testimonial-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    @media(max-width:900px){.testimonial-grid{grid-template-columns:1fr 1fr;}}
+    @media(max-width:600px){.testimonial-grid{grid-template-columns:1fr;}}
+
+    .testimonial-card {
+      padding: 28px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+
+    .testi-avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-ui);
+      font-weight: 700;
+      font-size: 1rem;
+      color: white;
+    }
+
+    .impact-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    @media(max-width:768px){.impact-grid{grid-template-columns:1fr 1fr;}}
+
+    .impact-item {
+      text-align: center;
+      padding: 32px 20px;
+      border-radius: var(--radius-lg);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+    }
+
+    .impact-num {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 3rem);
+      letter-spacing: -0.04em;
+    }
+
+    .hero-visual {
+      position: absolute;
+      right: max(40px, 6vw);
+      top: 50%;
+      transform: translateY(-50%);
+      width: clamp(320px, 42vw, 540px);
+    }
+
+    .dashboard-preview {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg), 0 40px 80px rgba(26,26,46,0.1);
+      overflow: hidden;
+      animation: floatDash 6s ease-in-out infinite;
+    }
+
+    @keyframes floatDash {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    .preview-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    .preview-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+    .preview-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+    .preview-stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .preview-stat {
+      padding: 14px;
+      background: var(--bg-muted);
+      border-radius: var(--radius-md);
+    }
+
+    .preview-quest {
+      padding: 14px 16px;
+      background: var(--bg-muted);
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    .preview-avatar {
+      width: 32px; height: 32px;
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem;
+    }
+
+    .footer {
+      background: var(--bg-dark);
+      color: rgba(255,255,255,0.7);
+      padding: 60px 0 32px;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    @media(max-width:768px){.footer-grid{grid-template-columns:1fr 1fr;}}
+    @media(max-width:480px){.footer-grid{grid-template-columns:1fr;}}
+
+    .footer-link {
+      display: block;
+      color: rgba(255,255,255,0.55);
+      text-decoration: none;
+      font-family: var(--font-ui);
+      font-size: 0.87rem;
+      padding: 4px 0;
+      transition: var(--transition);
+    }
+
+    .footer-link:hover { color: rgba(255,255,255,0.9); }
+
+    .cta-section {
+      background: linear-gradient(135deg, rgba(249,115,22,0.06) 0%, rgba(124,58,237,0.06) 100%);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════ NAVBAR ══════════════════ -->
+<nav class="navbar" id="navbar">
+  <a href="/" class="nav-logo">
+    <div class="nav-logo-icon">
+      <i class="fa-solid fa-location-dot" style="color:white;font-size:1rem;"></i>
+    </div>
+    <span class="nav-logo-text">Echo<span>Roots</span></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/map.html">Explore Map</a></li>
+    <li><a href="/ai-guide.html">AI Guide</a></li>
+    <li><a href="/quests.html">Quests</a></li>
+    <li><a href="/events.html">Events</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="login.html" class="btn btn-ghost btn-sm">Sign In</a>
+    <a href="register.html" class="btn btn-primary btn-sm">Get Started</a>
+  </div>
+</nav>
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grain"></div>
+  <div class="hero-float-1"></div>
+  <div class="hero-float-2"></div>
+  <div class="hero-float-3"></div>
+
+  <div class="container" style="position:relative;z-index:2;width:100%;">
+    <div style="max-width:580px;">
+      <div class="badge badge-saffron animate-fade-up" style="margin-bottom:24px;">
+        <i class="fa-solid fa-sparkles"></i>
+        AI-Powered Cultural Discovery
+      </div>
+
+      <h1 class="hero-title animate-fade-up-2">
+        Reconnect With Culture<br />
+        <span class="gradient-text">Through Exploration.</span>
+      </h1>
+
+      <p class="animate-fade-up-3" style="font-size:1.05rem;color:var(--text-secondary);margin:20px 0 36px;max-width:480px;line-height:1.7;">
+        Discover heritage, traditions, stories, food, and local experiences through AI-powered interactive exploration.
+      </p>
+
+      <div class="flex gap-3 animate-fade-up-4" style="flex-wrap:wrap;">
+        <a href="register.html" class="btn btn-primary btn-lg">
+          <i class="fa-solid fa-compass"></i>
+          Start Exploring
+        </a>
+        <a href="map.html" class="btn btn-secondary btn-lg">
+          <i class="fa-solid fa-map-location-dot"></i>
+          Discover Nearby
+        </a>
+      </div>
+
+      <div class="flex gap-4 animate-fade-up-4" style="margin-top:40px;flex-wrap:wrap;">
+        <div class="flex items-center gap-2" style="font-size:0.85rem;color:var(--text-secondary);">
+          <i class="fa-solid fa-users" style="color:var(--saffron);"></i>
+          <span><strong style="color:var(--text-primary);">12,000+</strong> students exploring</span>
+        </div>
+        <div class="flex items-center gap-2" style="font-size:0.85rem;color:var(--text-secondary);">
+          <i class="fa-solid fa-landmark" style="color:var(--teal);"></i>
+          <span><strong style="color:var(--text-primary);">500+</strong> cultural places</span>
+        </div>
+        <div class="flex items-center gap-2" style="font-size:0.85rem;color:var(--text-secondary);">
+          <i class="fa-solid fa-star" style="color:var(--amber);"></i>
+          <span><strong style="color:var(--text-primary);">4.9</strong> average rating</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Preview Float -->
+  <div class="hero-visual animate-fade-up-4" style="display:block;">
+    <div class="dashboard-preview">
+      <div class="preview-header">
+        <div class="preview-dot" style="background:#FF5F57;"></div>
+        <div class="preview-dot" style="background:#FEBC2E;"></div>
+        <div class="preview-dot" style="background:#28C840;"></div>
+        <span style="font-family:var(--font-ui);font-size:0.8rem;color:var(--text-muted);margin-left:8px;">EchoRoots Dashboard</span>
+      </div>
+      <div class="preview-body">
+        <div class="preview-stat-row">
+          <div class="preview-stat">
+            <div style="font-family:var(--font-ui);font-size:0.7rem;font-weight:700;color:var(--text-muted);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px;">XP Points</div>
+            <div style="font-family:var(--font-display);font-size:1.6rem;letter-spacing:-0.03em;color:var(--text-primary);">2,840</div>
+            <div class="xp-bar" style="margin-top:8px;"><div class="xp-bar-fill" style="width:68%;"></div></div>
+          </div>
+          <div class="preview-stat">
+            <div style="font-family:var(--font-ui);font-size:0.7rem;font-weight:700;color:var(--text-muted);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px;">Day Streak</div>
+            <div class="flex items-center gap-2" style="margin-top:4px;">
+              <i class="fa-solid fa-fire" style="color:var(--saffron);font-size:1.6rem;"></i>
+              <span style="font-family:var(--font-display);font-size:1.6rem;letter-spacing:-0.03em;">14</span>
+            </div>
+            <div style="font-family:var(--font-ui);font-size:0.72rem;color:var(--text-muted);margin-top:4px;">days active</div>
+          </div>
+        </div>
+        <div class="preview-quest">
+          <div class="preview-avatar" style="background:rgba(249,115,22,0.1);color:var(--saffron);">
+            <i class="fa-solid fa-landmark"></i>
+          </div>
+          <div style="flex:1;">
+            <div style="font-family:var(--font-ui);font-size:0.82rem;font-weight:600;color:var(--text-primary);">Heritage Hunter</div>
+            <div class="xp-bar" style="margin-top:5px;"><div class="xp-bar-fill" style="width:55%;"></div></div>
+          </div>
+          <div class="badge badge-saffron" style="font-size:0.65rem;">+150 XP</div>
+        </div>
+        <div class="preview-quest">
+          <div class="preview-avatar" style="background:rgba(6,182,212,0.1);color:var(--teal);">
+            <i class="fa-solid fa-book-open"></i>
+          </div>
+          <div style="flex:1;">
+            <div style="font-family:var(--font-ui);font-size:0.82rem;font-weight:600;color:var(--text-primary);">Story Collector</div>
+            <div class="xp-bar" style="margin-top:5px;"><div class="xp-bar-fill" style="width:80%;background:linear-gradient(90deg,var(--teal),var(--purple));"></div></div>
+          </div>
+          <div class="badge badge-teal" style="font-size:0.65rem;">+400 XP</div>
+        </div>
+        <div class="preview-stat-row">
+          <div class="preview-stat" style="display:flex;align-items:center;gap:10px;">
+            <div class="preview-avatar" style="background:rgba(124,58,237,0.1);color:var(--purple);width:36px;height:36px;border-radius:10px;">
+              <i class="fa-solid fa-trophy"></i>
+            </div>
+            <div>
+              <div style="font-family:var(--font-ui);font-size:0.68rem;color:var(--text-muted);">Rank</div>
+              <div style="font-family:var(--font-ui);font-weight:700;">#4 Global</div>
+            </div>
+          </div>
+          <div class="preview-stat" style="display:flex;align-items:center;gap:10px;">
+            <div class="preview-avatar" style="background:rgba(236,72,153,0.1);color:var(--pink);width:36px;height:36px;border-radius:10px;">
+              <i class="fa-solid fa-map-pin"></i>
+            </div>
+            <div>
+              <div style="font-family:var(--font-ui);font-size:0.68rem;color:var(--text-muted);">Places</div>
+              <div style="font-family:var(--font-ui);font-weight:700;">28 visited</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ FEATURES ══════════════════ -->
+<section class="section" style="background:var(--bg-card);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:56px;" class="reveal">
+      <div class="badge badge-teal" style="margin-bottom:16px;"><i class="fa-solid fa-grid-2"></i> Features</div>
+      <h2 class="section-title">Everything You Need to <span class="gradient-text">Explore Deeply</span></h2>
+      <p style="color:var(--text-secondary);max-width:500px;margin:14px auto 0;font-size:0.97rem;">A complete cultural exploration platform designed for the curious mind.</p>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon" style="background:rgba(249,115,22,0.1);color:var(--saffron);">
+          <i class="fa-solid fa-robot"></i>
+        </div>
+        <h4 style="margin-bottom:8px;">AI Cultural Guide</h4>
+        <p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.65;">Conversational AI that knows India's 5000+ year cultural history. Ask anything about heritage, food, or traditions.</p>
+      </div>
+      <div class="feature-card reveal" style="transition-delay:0.05s;">
+        <div class="feature-icon" style="background:rgba(6,182,212,0.1);color:var(--teal);">
+          <i class="fa-solid fa-map-location-dot"></i>
+        </div>
+        <h4 style="margin-bottom:8px;">Interactive Explore Map</h4>
+        <p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.65;">Discover heritage sites, hidden gems, food trails, and festivals on a beautifully curated interactive map.</p>
+      </div>
+      <div class="feature-card reveal" style="transition-delay:0.1s;">
+        <div class="feature-icon" style="background:rgba(124,58,237,0.1);color:var(--purple);">
+          <i class="fa-solid fa-trophy"></i>
+        </div>
+        <h4 style="margin-bottom:8px;">Gamified Quest System</h4>
+        <p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.65;">Daily and weekly quests, XP points, levels, and achievement badges that make cultural learning addictively fun.</p>
+      </div>
+      <div class="feature-card reveal" style="transition-delay:0.15s;">
+        <div class="feature-icon" style="background:rgba(236,72,153,0.1);color:var(--pink);">
+          <i class="fa-solid fa-book-open-reader"></i>
+        </div>
+        <h4 style="margin-bottom:8px;">Cultural Story Cards</h4>
+        <p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.65;">Immersive short stories about places, people, and traditions — narrated beautifully with AI storytelling.</p>
+      </div>
+      <div class="feature-card reveal" style="transition-delay:0.2s;">
+        <div class="feature-icon" style="background:rgba(245,158,11,0.1);color:var(--amber);">
+          <i class="fa-solid fa-calendar-days"></i>
+        </div>
+        <h4 style="margin-bottom:8px;">Event Discovery</h4>
+        <p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.65;">Find festivals, workshops, performances, and cultural walks happening near you — with countdowns and bookmarks.</p>
+      </div>
+      <div class="feature-card reveal" style="transition-delay:0.25s;">
+        <div class="feature-icon" style="background:rgba(16,185,129,0.1);color:#10B981;">
+          <i class="fa-solid fa-ranking-star"></i>
+        </div>
+        <h4 style="margin-bottom:8px;">Leaderboard & Community</h4>
+        <p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.65;">Compete with fellow cultural explorers globally. Rise the ranks through exploration and story sharing.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ HOW IT WORKS ══════════════════ -->
+<section class="section">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:56px;" class="reveal">
+      <div class="badge badge-purple" style="margin-bottom:16px;"><i class="fa-solid fa-route"></i> How It Works</div>
+      <h2 class="section-title">Explore in <span class="gradient-text">4 Simple Steps</span></h2>
+    </div>
+    <div class="how-grid">
+      <div class="how-step reveal">
+        <div class="step-num">1</div>
+        <h4 style="margin-bottom:10px;">Create Your Profile</h4>
+        <p style="font-size:0.88rem;color:var(--text-secondary);line-height:1.65;">Sign up and tell EchoRoots your interests — heritage, food, music, or festivals.</p>
+      </div>
+      <div class="how-step reveal" style="transition-delay:0.1s;">
+        <div class="step-num">2</div>
+        <h4 style="margin-bottom:10px;">Get AI Recommendations</h4>
+        <p style="font-size:0.88rem;color:var(--text-secondary);line-height:1.65;">Your AI Guide curates personalized cultural experiences based on your location and taste.</p>
+      </div>
+      <div class="how-step reveal" style="transition-delay:0.2s;">
+        <div class="step-num">3</div>
+        <h4 style="margin-bottom:10px;">Complete Quests</h4>
+        <p style="font-size:0.88rem;color:var(--text-secondary);line-height:1.65;">Earn XP, unlock badges, and level up by completing cultural exploration challenges.</p>
+      </div>
+      <div class="how-step reveal" style="transition-delay:0.3s;">
+        <div class="step-num">4</div>
+        <h4 style="margin-bottom:10px;">Share & Rise the Leaderboard</h4>
+        <p style="font-size:0.88rem;color:var(--text-secondary);line-height:1.65;">Share your discoveries, help others explore, and climb to the top of the cultural explorer rankings.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ IMPACT ══════════════════ -->
+<section class="section" style="background:var(--bg-dark);">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:56px;" class="reveal">
+      <div class="badge" style="background:rgba(249,115,22,0.15);color:var(--saffron);margin-bottom:16px;"><i class="fa-solid fa-chart-line"></i> Impact</div>
+      <h2 class="section-title" style="color:#fff;">Preserving Culture,<br /><span class="gradient-text">One Exploration at a Time</span></h2>
+    </div>
+    <div class="impact-grid">
+      <div class="impact-item reveal" style="background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.08);">
+        <div class="impact-num gradient-text">12K+</div>
+        <div style="font-family:var(--font-ui);font-size:0.85rem;color:rgba(255,255,255,0.55);margin-top:8px;">Active Students</div>
+      </div>
+      <div class="impact-item reveal" style="background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.08);transition-delay:0.1s;">
+        <div class="impact-num gradient-text">500+</div>
+        <div style="font-family:var(--font-ui);font-size:0.85rem;color:rgba(255,255,255,0.55);margin-top:8px;">Cultural Places</div>
+      </div>
+      <div class="impact-item reveal" style="background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.08);transition-delay:0.2s;">
+        <div class="impact-num gradient-text">280+</div>
+        <div style="font-family:var(--font-ui);font-size:0.85rem;color:rgba(255,255,255,0.55);margin-top:8px;">Cultural Stories</div>
+      </div>
+      <div class="impact-item reveal" style="background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.08);transition-delay:0.3s;">
+        <div class="impact-num gradient-text">28</div>
+        <div style="font-family:var(--font-ui);font-size:0.85rem;color:rgba(255,255,255,0.55);margin-top:8px;">States Covered</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ TESTIMONIALS ══════════════════ -->
+<section class="section">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:56px;" class="reveal">
+      <div class="badge badge-pink" style="margin-bottom:16px;"><i class="fa-solid fa-quote-left"></i> Testimonials</div>
+      <h2 class="section-title">Loved by <span class="gradient-text">Curious Explorers</span></h2>
+    </div>
+    <div class="testimonial-grid">
+      <div class="testimonial-card reveal">
+        <div class="flex items-center gap-3" style="margin-bottom:16px;">
+          <div class="testi-avatar" style="background:linear-gradient(135deg,var(--saffron),var(--coral));">A</div>
+          <div>
+            <div style="font-family:var(--font-ui);font-weight:600;font-size:0.92rem;">Aanya Sharma</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);">Delhi University</div>
+          </div>
+          <div style="margin-left:auto;color:var(--amber);font-size:0.8rem;">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+          </div>
+        </div>
+        <p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.7;font-style:italic;">"EchoRoots changed how I see my own city. I discovered a 200-year-old temple 2km from my college that I never knew existed. The AI guide is genuinely impressive."</p>
+      </div>
+      <div class="testimonial-card reveal" style="transition-delay:0.1s;">
+        <div class="flex items-center gap-3" style="margin-bottom:16px;">
+          <div class="testi-avatar" style="background:linear-gradient(135deg,var(--teal),var(--purple));">R</div>
+          <div>
+            <div style="font-family:var(--font-ui);font-weight:600;font-size:0.92rem;">Rohan Mehta</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);">IIT Bombay</div>
+          </div>
+          <div style="margin-left:auto;color:var(--amber);font-size:0.8rem;">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+          </div>
+        </div>
+        <p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.7;font-style:italic;">"The gamification is addictive — I've done 22 quests in 3 weeks. But more importantly, I actually learned so much about Maratha history through it. Genuinely useful."</p>
+      </div>
+      <div class="testimonial-card reveal" style="transition-delay:0.2s;">
+        <div class="flex items-center gap-3" style="margin-bottom:16px;">
+          <div class="testi-avatar" style="background:linear-gradient(135deg,var(--pink),var(--purple));">P</div>
+          <div>
+            <div style="font-family:var(--font-ui);font-weight:600;font-size:0.92rem;">Priya Nair</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);">Christ University, Bengaluru</div>
+          </div>
+          <div style="margin-left:auto;color:var(--amber);font-size:0.8rem;">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+          </div>
+        </div>
+        <p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.7;font-style:italic;">"The cultural story cards are beautiful. I spent a whole evening reading about Warli art and the weavers of Varanasi. It reads like literature, not a textbook."</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ CTA ══════════════════ -->
+<section class="section cta-section">
+  <div class="container" style="text-align:center;">
+    <div class="reveal">
+      <div class="badge badge-saffron" style="margin-bottom:20px;"><i class="fa-solid fa-compass"></i> Start Now</div>
+      <h2 class="section-title" style="margin-bottom:16px;">Your Cultural Journey<br /><span class="gradient-text">Starts Here</span></h2>
+      <p style="color:var(--text-secondary);max-width:460px;margin:0 auto 36px;font-size:0.97rem;line-height:1.7;">Join 12,000+ students already exploring India's incredible cultural heritage. Free to start, forever.</p>
+      <div class="flex gap-3 justify-between" style="justify-content:center;flex-wrap:wrap;">
+        <a href="register.html" class="btn btn-primary btn-lg pulse-glow">
+          <i class="fa-solid fa-compass"></i>
+          Start Exploring — Free
+        </a>
+        <a href="ai-guide.html" class="btn btn-secondary btn-lg">
+          <i class="fa-solid fa-robot"></i>
+          Try the AI Guide
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ FOOTER ══════════════════ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="nav-logo" style="margin-bottom:16px;">
+          <div class="nav-logo-icon"><i class="fa-solid fa-location-dot" style="color:white;"></i></div>
+          <span class="nav-logo-text" style="color:white;">Echo<span>Roots</span></span>
+        </div>
+        <p style="font-size:0.87rem;line-height:1.7;max-width:260px;color:rgba(255,255,255,0.5);">Reconnecting students with India's rich cultural heritage through AI-powered exploration.</p>
+        <div class="flex gap-3" style="margin-top:20px;">
+          <a href="#" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.6);font-size:0.9rem;transition:var(--transition);" onmouseover="this.style.background='rgba(249,115,22,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.6);font-size:0.9rem;transition:var(--transition);" onmouseover="this.style.background='rgba(6,182,212,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'"><i class="fa-brands fa-twitter"></i></a>
+          <a href="#" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.6);font-size:0.9rem;transition:var(--transition);" onmouseover="this.style.background='rgba(124,58,237,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'"><i class="fa-brands fa-linkedin"></i></a>
+        </div>
+      </div>
+      <div>
+        <div style="font-family:var(--font-ui);font-size:0.78rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:16px;">Explore</div>
+        <a href="map.html" class="footer-link">Explore Map</a>
+        <a href="ai-guide.html" class="footer-link">AI Guide</a>
+        <a href="events.html" class="footer-link">Events</a>
+        <a href="quests.html" class="footer-link">Quests</a>
+      </div>
+      <div>
+        <div style="font-family:var(--font-ui);font-size:0.78rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:16px;">Account</div>
+        <a href="register.html" class="footer-link">Sign Up</a>
+        <a href="login.html" class="footer-link">Sign In</a>
+        <a href="dashboard.html" class="footer-link">Dashboard</a>
+      </div>
+      <div>
+        <div style="font-family:var(--font-ui);font-size:0.78rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:16px;">Company</div>
+        <a href="#" class="footer-link">About Us</a>
+        <a href="#" class="footer-link">Privacy Policy</a>
+        <a href="#" class="footer-link">Terms of Service</a>
+        <a href="#" class="footer-link">Contact</a>
+      </div>
+    </div>
+    <div class="divider" style="background:rgba(255,255,255,0.08);"></div>
+    <div class="flex justify-between items-center" style="flex-wrap:wrap;gap:12px;">
+      <span style="font-size:0.82rem;color:rgba(255,255,255,0.35);">&copy; 2025 EchoRoots. Built for India's cultural future.</span>
+      <span style="font-size:0.82rem;color:rgba(255,255,255,0.35);">Made with <i class="fa-solid fa-heart" style="color:var(--pink);"></i> for Hackathon 2025</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/script.js"></script>
+</body>
+</html>

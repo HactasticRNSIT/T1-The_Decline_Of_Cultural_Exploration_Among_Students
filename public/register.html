@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Account — EchoRoots</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    .auth-page { min-height: 100svh; display: grid; grid-template-columns: 1fr 1fr; }
+
+    .auth-panel-left {
+      background: linear-gradient(135deg, #0F0F14 0%, #1A1A2E 50%, #0F0A1A 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px max(40px, 6vw);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-panel-left::before {
+      content: '';
+      position: absolute;
+      top: -30%; left: -20%;
+      width: 60%; height: 60%;
+      background: radial-gradient(ellipse, rgba(249,115,22,0.18), transparent);
+      border-radius: 50%;
+    }
+
+    .auth-panel-left::after {
+      content: '';
+      position: absolute;
+      bottom: -20%; right: -20%;
+      width: 50%; height: 50%;
+      background: radial-gradient(ellipse, rgba(124,58,237,0.14), transparent);
+      border-radius: 50%;
+    }
+
+    .auth-panel-right {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px max(32px, 5vw);
+      background: var(--bg);
+      overflow-y: auto;
+    }
+
+    .auth-form-container { width: 100%; max-width: 420px; padding: 20px 0; }
+
+    .password-wrapper { position: relative; }
+    .password-toggle {
+      position: absolute;
+      right: 14px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: var(--text-muted); font-size: 0.9rem;
+      transition: var(--transition);
+    }
+    .password-toggle:hover { color: var(--text-secondary); }
+
+    .field-error { color: #EF4444; font-size: 0.76rem; font-family: var(--font-ui); margin-top: 5px; display: none; }
+    .field-error.show { display: block; }
+    .form-input-error { border-color: #EF4444 !important; }
+
+    .interest-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .interest-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-family: var(--font-ui);
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: var(--bg-card);
+      transition: var(--transition);
+      user-select: none;
+    }
+
+    .interest-chip:hover { border-color: var(--border-hover); color: var(--text-primary); }
+
+    .interest-chip.selected {
+      border-color: var(--saffron);
+      color: var(--saffron);
+      background: rgba(249,115,22,0.05);
+    }
+
+    .interest-chip input { display: none; }
+
+    .password-strength {
+      margin-top: 8px;
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .strength-bar {
+      height: 4px;
+      flex: 1;
+      border-radius: 2px;
+      background: var(--border);
+      transition: var(--transition);
+    }
+
+    .strength-bar.weak { background: #EF4444; }
+    .strength-bar.medium { background: var(--amber); }
+    .strength-bar.strong { background: #10B981; }
+
+    .strength-label {
+      font-size: 0.75rem;
+      font-family: var(--font-ui);
+      font-weight: 600;
+      margin-left: 6px;
+      min-width: 48px;
+    }
+
+    #registerBtn .spinner { width: 18px; height: 18px; border-width: 2px; display: none; }
+    #registerBtn.loading .spinner { display: block; }
+    #registerBtn.loading .btn-text { display: none; }
+
+    .step-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+
+    .step-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: var(--transition);
+    }
+
+    .step-dot.active { background: var(--saffron); width: 24px; border-radius: 4px; }
+    .step-dot.done { background: #10B981; }
+
+    @media (max-width: 1024px) {
+      .auth-page { grid-template-columns: 1fr; }
+      .auth-panel-left { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="auth-page">
+  <!-- Left panel -->
+  <div class="auth-panel-left">
+    <div style="position:relative;z-index:1;">
+      <a href="/" class="nav-logo" style="margin-bottom:48px;display:flex;">
+        <div class="nav-logo-icon"><i class="fa-solid fa-location-dot" style="color:white;font-size:0.85rem;"></i></div>
+        <span class="nav-logo-text" style="color:white;">Echo<span style="color:var(--saffron);">Roots</span></span>
+      </a>
+
+      <h1 style="font-family:var(--font-display);font-size:clamp(2rem,3.5vw,2.8rem);color:white;line-height:1.1;letter-spacing:-0.03em;margin-bottom:16px;">
+        Your Cultural<br />
+        <span style="background:linear-gradient(135deg,var(--teal),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Adventure Begins</span>
+      </h1>
+      <p style="color:rgba(255,255,255,0.55);font-size:0.92rem;line-height:1.7;max-width:340px;margin-bottom:40px;">
+        Create your free account and start earning XP by exploring India's extraordinary cultural landscape.
+      </p>
+
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:36px;height:36px;border-radius:50%;background:rgba(249,115,22,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="fa-solid fa-check" style="color:var(--saffron);font-size:0.85rem;"></i>
+          </div>
+          <span style="color:rgba(255,255,255,0.7);font-size:0.88rem;">Free forever — no credit card required</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:36px;height:36px;border-radius:50%;background:rgba(6,182,212,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="fa-solid fa-check" style="color:var(--teal);font-size:0.85rem;"></i>
+          </div>
+          <span style="color:rgba(255,255,255,0.7);font-size:0.88rem;">Personalized AI recommendations from day one</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:36px;height:36px;border-radius:50%;background:rgba(124,58,237,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="fa-solid fa-check" style="color:var(--purple);font-size:0.85rem;"></i>
+          </div>
+          <span style="color:rgba(255,255,255,0.7);font-size:0.88rem;">Earn badges and compete on the leaderboard</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:36px;height:36px;border-radius:50%;background:rgba(236,72,153,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="fa-solid fa-check" style="color:var(--pink);font-size:0.85rem;"></i>
+          </div>
+          <span style="color:rgba(255,255,255,0.7);font-size:0.88rem;">Access 200+ cultural quests across India</span>
+        </div>
+      </div>
+
+      <div style="margin-top:48px;padding:20px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-lg);">
+        <p style="color:rgba(255,255,255,0.6);font-size:0.85rem;font-style:italic;line-height:1.6;margin-bottom:12px;">
+          "EchoRoots made me realize how much incredible heritage exists in my own city. The quests are genuinely fun and educational."
+        </p>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--saffron),var(--pink));"></div>
+          <div>
+            <div style="font-family:var(--font-ui);font-size:0.82rem;font-weight:600;color:white;">Priya Mehta</div>
+            <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);">Level 12 Explorer, Mumbai</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel -->
+  <div class="auth-panel-right">
+    <div class="auth-form-container animate-fade-up">
+      <div style="margin-bottom:28px;">
+        <div class="label-tag" style="color:var(--saffron);margin-bottom:10px;">Get started free</div>
+        <h2 style="font-family:var(--font-display);font-size:2rem;letter-spacing:-0.025em;margin-bottom:8px;">Create your account</h2>
+        <p style="color:var(--text-muted);font-size:0.88rem;">Join 2,400+ students exploring India's cultural heritage</p>
+      </div>
+
+      <div id="authError" style="display:none;padding:12px 16px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:var(--radius-md);color:#EF4444;font-size:0.85rem;font-family:var(--font-ui);margin-bottom:18px;">
+        <i class="fa-solid fa-circle-exclamation" style="margin-right:8px;"></i>
+        <span id="authErrorText"></span>
+      </div>
+
+      <form id="registerForm" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="name">Full name</label>
+          <input type="text" id="name" class="form-input" placeholder="Arjun Sharma" autocomplete="name" />
+          <div class="field-error" id="nameError">Please enter your full name</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email address</label>
+          <input type="email" id="email" class="form-input" placeholder="you@example.com" autocomplete="email" />
+          <div class="field-error" id="emailError">Please enter a valid email address</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="password" class="form-input" placeholder="Create a strong password" autocomplete="new-password" oninput="checkPasswordStrength(this.value)" />
+            <button type="button" class="password-toggle" id="togglePassword" tabindex="-1">
+              <i class="fa-regular fa-eye" id="eyeIcon"></i>
+            </button>
+          </div>
+          <div class="password-strength" id="strengthMeter" style="display:none;">
+            <div class="strength-bar" id="bar1"></div>
+            <div class="strength-bar" id="bar2"></div>
+            <div class="strength-bar" id="bar3"></div>
+            <span class="strength-label" id="strengthLabel" style="color:var(--text-muted);"></span>
+          </div>
+          <div class="field-error" id="passwordError">Password must be at least 6 characters</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="confirmPassword">Confirm password</label>
+          <div class="password-wrapper">
+            <input type="password" id="confirmPassword" class="form-input" placeholder="Repeat your password" autocomplete="new-password" />
+          </div>
+          <div class="field-error" id="confirmError">Passwords do not match</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">What are you interested in? <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
+          <div class="interest-grid" id="interestGrid">
+            <label class="interest-chip" data-value="heritage">
+              <input type="checkbox" value="heritage" />
+              <i class="fa-solid fa-landmark" style="width:14px;"></i> Heritage
+            </label>
+            <label class="interest-chip" data-value="festivals">
+              <input type="checkbox" value="festivals" />
+              <i class="fa-solid fa-star-and-crescent" style="width:14px;"></i> Festivals
+            </label>
+            <label class="interest-chip" data-value="food">
+              <input type="checkbox" value="food" />
+              <i class="fa-solid fa-utensils" style="width:14px;"></i> Food Culture
+            </label>
+            <label class="interest-chip" data-value="folk-arts">
+              <input type="checkbox" value="folk-arts" />
+              <i class="fa-solid fa-palette" style="width:14px;"></i> Folk Arts
+            </label>
+            <label class="interest-chip" data-value="music">
+              <input type="checkbox" value="music" />
+              <i class="fa-solid fa-music" style="width:14px;"></i> Classical Music
+            </label>
+            <label class="interest-chip" data-value="architecture">
+              <input type="checkbox" value="architecture" />
+              <i class="fa-solid fa-archway" style="width:14px;"></i> Architecture
+            </label>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:24px;">
+          <input type="checkbox" id="terms" style="width:16px;height:16px;margin-top:2px;accent-color:var(--saffron);cursor:pointer;flex-shrink:0;" />
+          <label for="terms" style="font-size:0.83rem;color:var(--text-secondary);font-family:var(--font-ui);cursor:pointer;line-height:1.5;">
+            I agree to the <a href="#" style="color:var(--saffron);text-decoration:none;">Terms of Service</a> and <a href="#" style="color:var(--saffron);text-decoration:none;">Privacy Policy</a>
+          </label>
+        </div>
+        <div class="field-error" id="termsError" style="margin-top:-16px;margin-bottom:12px;">Please accept the terms to continue</div>
+
+        <button type="submit" class="btn btn-primary w-full btn-lg" id="registerBtn">
+          <div class="spinner"></div>
+          <span class="btn-text"><i class="fa-solid fa-seedling"></i> Create Account</span>
+        </button>
+      </form>
+
+      <p style="text-align:center;margin-top:24px;font-size:0.87rem;color:var(--text-muted);">
+        Already have an account?
+        <a href="login.html" style="color:var(--saffron);font-weight:600;text-decoration:none;font-family:var(--font-ui);">Sign in</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/script.js"></script>
+<script>
+  // Interest chip toggle
+  document.querySelectorAll('.interest-chip').forEach(chip => {
+    chip.addEventListener('click', function () {
+      const checkbox = this.querySelector('input[type="checkbox"]');
+      checkbox.checked = !checkbox.checked;
+      this.classList.toggle('selected', checkbox.checked);
+    });
+  });
+
+  // Password toggle
+  document.getElementById('togglePassword').addEventListener('click', function () {
+    const input = document.getElementById('password');
+    const icon = document.getElementById('eyeIcon');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.className = 'fa-regular fa-eye-slash';
+    } else {
+      input.type = 'password';
+      icon.className = 'fa-regular fa-eye';
+    }
+  });
+
+  // Password strength
+  function checkPasswordStrength(val) {
+    const meter = document.getElementById('strengthMeter');
+    const bars = [document.getElementById('bar1'), document.getElementById('bar2'), document.getElementById('bar3')];
+    const label = document.getElementById('strengthLabel');
+
+    if (!val) { meter.style.display = 'none'; return; }
+    meter.style.display = 'flex';
+
+    bars.forEach(b => { b.className = 'strength-bar'; });
+
+    let score = 0;
+    if (val.length >= 6) score++;
+    if (val.length >= 10 && /[A-Z]/.test(val)) score++;
+    if (/[0-9]/.test(val) && /[^A-Za-z0-9]/.test(val)) score++;
+
+    if (score === 1) {
+      bars[0].classList.add('weak');
+      label.textContent = 'Weak'; label.style.color = '#EF4444';
+    } else if (score === 2) {
+      bars[0].classList.add('medium'); bars[1].classList.add('medium');
+      label.textContent = 'Fair'; label.style.color = 'var(--amber)';
+    } else if (score === 3) {
+      bars.forEach(b => b.classList.add('strong'));
+      label.textContent = 'Strong'; label.style.color = '#10B981';
+    } else {
+      bars[0].classList.add('weak');
+      label.textContent = 'Weak'; label.style.color = '#EF4444';
+    }
+  }
+
+  // Register form
+  document.getElementById('registerForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const termsAccepted = document.getElementById('terms').checked;
+
+    document.querySelectorAll('.field-error').forEach(el => el.classList.remove('show'));
+    document.querySelectorAll('.form-input').forEach(el => el.classList.remove('form-input-error'));
+    document.getElementById('authError').style.display = 'none';
+
+    let valid = true;
+    if (!name || name.length < 2) {
+      document.getElementById('nameError').classList.add('show');
+      document.getElementById('name').classList.add('form-input-error');
+      valid = false;
+    }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      document.getElementById('emailError').classList.add('show');
+      document.getElementById('email').classList.add('form-input-error');
+      valid = false;
+    }
+    if (!password || password.length < 6) {
+      document.getElementById('passwordError').classList.add('show');
+      document.getElementById('password').classList.add('form-input-error');
+      valid = false;
+    }
+    if (password !== confirmPassword) {
+      document.getElementById('confirmError').classList.add('show');
+      document.getElementById('confirmPassword').classList.add('form-input-error');
+      valid = false;
+    }
+    if (!termsAccepted) {
+      document.getElementById('termsError').classList.add('show');
+      valid = false;
+    }
+    if (!valid) return;
+
+    const interests = Array.from(document.querySelectorAll('.interest-chip input:checked')).map(i => i.value);
+
+    const btn = document.getElementById('registerBtn');
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, interests })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        localStorage.setItem('er_token', data.data.token);
+        localStorage.setItem('er_user', JSON.stringify(data.data));
+        showToast('Account created! Welcome to EchoRoots.');
+        setTimeout(() => { window.location.href = '/dashboard.html'; }, 900);
+      } else {
+        document.getElementById('authErrorText').textContent = data.message;
+        document.getElementById('authError').style.display = 'block';
+      }
+    } catch (err) {
+      document.getElementById('authErrorText').textContent = 'Connection error. Please try again.';
+      document.getElementById('authError').style.display = 'block';
+    } finally {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

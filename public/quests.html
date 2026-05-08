@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quests — EchoRoots</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    .quests-layout { display: flex; min-height: 100svh; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: 0; left: 0;
+      height: 100svh;
+      display: flex;
+      flex-direction: column;
+      z-index: 200;
+    }
+
+    .sidebar-logo {
+      height: 68px;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .sidebar-nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
+
+    .sidebar-section-label {
+      font-family: var(--font-ui);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 0 8px;
+      margin: 16px 0 6px;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: var(--radius-md);
+      font-family: var(--font-ui);
+      font-size: 0.86rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: var(--transition);
+      margin-bottom: 2px;
+    }
+
+    .sidebar-item:hover { background: var(--bg-muted); color: var(--text-primary); }
+    .sidebar-item.active { background: rgba(249,115,22,0.08); color: var(--saffron); font-weight: 600; }
+    .sidebar-item .sidebar-icon { width: 18px; text-align: center; }
+
+    /* Main */
+    .main-content { margin-left: 240px; flex: 1; min-height: 100svh; }
+
+    .page-topbar {
+      height: 68px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 32px;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .page-content { padding: 32px; max-width: 1100px; }
+
+    /* XP streak banner */
+    .streak-banner {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 24px;
+      background: linear-gradient(135deg, rgba(249,115,22,0.06), rgba(236,72,153,0.04));
+      border: 1px solid rgba(249,115,22,0.15);
+      border-radius: var(--radius-lg);
+      margin-bottom: 28px;
+    }
+
+    /* Quest card */
+    .quest-card {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .quest-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--quest-color, var(--saffron));
+      border-radius: 0 2px 2px 0;
+    }
+
+    .quest-card:hover {
+      border-color: var(--border-hover);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .quest-card.completed {
+      opacity: 0.75;
+      background: var(--bg-muted);
+    }
+
+    .quest-card.completed::before { background: #10B981; }
+
+    .quest-icon-wrap {
+      width: 48px; height: 48px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .quest-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 18px;
+    }
+
+    .xp-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      background: rgba(249,115,22,0.1);
+      color: var(--saffron);
+      border-radius: var(--radius-full);
+      font-family: var(--font-ui);
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .task-list { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+    }
+
+    .task-check {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 0.6rem;
+      color: white;
+      transition: var(--transition);
+    }
+
+    .task-check.done { background: #10B981; border-color: #10B981; }
+
+    .complete-btn {
+      margin-top: 18px;
+      width: 100%;
+      padding: 10px;
+      border-radius: var(--radius-full);
+      border: none;
+      font-family: var(--font-ui);
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .complete-btn.active {
+      background: linear-gradient(135deg, var(--saffron), var(--pink));
+      color: white;
+      box-shadow: 0 2px 10px rgba(249,115,22,0.3);
+    }
+
+    .complete-btn.active:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(249,115,22,0.4); }
+
+    .complete-btn.done {
+      background: rgba(16,185,129,0.1);
+      color: #10B981;
+      cursor: default;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .tab-pills {
+      display: flex;
+      gap: 4px;
+      background: var(--bg-muted);
+      padding: 4px;
+      border-radius: var(--radius-full);
+    }
+
+    .tab-pill {
+      padding: 7px 18px;
+      border-radius: var(--radius-full);
+      border: none;
+      font-family: var(--font-ui);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-secondary);
+      background: transparent;
+      transition: var(--transition);
+    }
+
+    .tab-pill.active { background: var(--bg-card); color: var(--text-primary); box-shadow: var(--shadow-sm); }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    #loadingState { text-align: center; padding: 60px 20px; }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main-content { margin-left: 0; }
+      .quest-grid { grid-template-columns: 1fr; }
+      .page-content { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="quests-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <a href="/" class="nav-logo">
+        <div class="nav-logo-icon"><i class="fa-solid fa-location-dot" style="color:white;font-size:0.85rem;"></i></div>
+        <span class="nav-logo-text">Echo<span>Roots</span></span>
+      </a>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Explore</div>
+      <a href="dashboard.html" class="sidebar-item"><span class="sidebar-icon"><i class="fa-solid fa-house"></i></span> Dashboard</a>
+      <a href="map.html" class="sidebar-item"><span class="sidebar-icon"><i class="fa-solid fa-map-location-dot"></i></span> Cultural Map</a>
+      <a href="ai-guide.html" class="sidebar-item"><span class="sidebar-icon"><i class="fa-solid fa-robot"></i></span> AI Guide</a>
+
+      <div class="sidebar-section-label">Progress</div>
+      <a href="quests.html" class="sidebar-item active"><span class="sidebar-icon"><i class="fa-solid fa-trophy"></i></span> Quests</a>
+      <a href="events.html" class="sidebar-item"><span class="sidebar-icon"><i class="fa-solid fa-calendar-days"></i></span> Events</a>
+    </nav>
+    <div style="padding:16px;border-top:1px solid var(--border);">
+      <div id="sidebarUser" style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--radius-md);">
+        <div id="sidebarAvatar" style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--saffron),var(--pink));display:flex;align-items:center;justify-content:center;color:white;font-family:var(--font-ui);font-weight:700;font-size:0.85rem;flex-shrink:0;">?</div>
+        <div style="overflow:hidden;">
+          <div id="sidebarName" style="font-family:var(--font-ui);font-size:0.84rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Guest</div>
+          <div id="sidebarLevel" style="font-size:0.75rem;color:var(--text-muted);">Level 1 Explorer</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-content">
+    <div class="page-topbar">
+      <div>
+        <h4 style="font-size:1rem;font-weight:700;">Quests</h4>
+        <div style="font-size:0.78rem;color:var(--text-muted);">Complete cultural missions to earn XP</div>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
+        <div id="userXpBadge" style="display:flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(249,115,22,0.08);border-radius:var(--radius-full);font-family:var(--font-ui);font-size:0.82rem;font-weight:700;color:var(--saffron);">
+          <i class="fa-solid fa-bolt"></i> <span id="userXpDisplay">0 XP</span>
+        </div>
+        <a href="login.html" id="loginNavBtn" class="btn btn-primary btn-sm">Sign In</a>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <!-- Streak banner -->
+      <div class="streak-banner reveal">
+        <div style="width:48px;height:48px;border-radius:var(--radius-md);background:linear-gradient(135deg,var(--saffron),var(--coral));display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="fa-solid fa-fire" style="color:white;font-size:1.2rem;"></i>
+        </div>
+        <div>
+          <div style="font-family:var(--font-ui);font-weight:700;font-size:0.95rem;margin-bottom:2px;">
+            <span id="streakCount">0</span>-day streak <span style="color:var(--saffron);">active</span>
+          </div>
+          <div style="font-size:0.82rem;color:var(--text-secondary);">Keep your streak alive by completing at least one quest daily</div>
+        </div>
+        <div style="margin-left:auto;text-align:right;">
+          <div style="font-family:var(--font-ui);font-size:1.4rem;font-weight:800;color:var(--saffron);" id="totalXp">0</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);">Total XP earned</div>
+        </div>
+      </div>
+
+      <!-- Tabs + quest list -->
+      <div class="section-header reveal">
+        <div>
+          <h3 style="font-family:var(--font-display);font-size:1.6rem;letter-spacing:-0.02em;">Your Quests</h3>
+          <p style="color:var(--text-muted);font-size:0.85rem;margin-top:3px;" id="questSubtitle">Loading quests...</p>
+        </div>
+        <div class="tab-pills">
+          <button class="tab-pill active" data-type="all" onclick="filterQuests('all', this)">All</button>
+          <button class="tab-pill" data-type="daily" onclick="filterQuests('daily', this)">Daily</button>
+          <button class="tab-pill" data-type="weekly" onclick="filterQuests('weekly', this)">Weekly</button>
+          <button class="tab-pill" data-type="special" onclick="filterQuests('special', this)">Special</button>
+        </div>
+      </div>
+
+      <div id="loadingState">
+        <div class="spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div>
+        <div style="color:var(--text-muted);font-family:var(--font-ui);font-size:0.88rem;">Loading quests...</div>
+      </div>
+
+      <div class="quest-grid" id="questGrid" style="display:none;"></div>
+
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <i class="fa-solid fa-compass" style="font-size:2.5rem;color:var(--border);margin-bottom:16px;"></i>
+        <div style="font-family:var(--font-ui);font-weight:600;margin-bottom:6px;">No quests found</div>
+        <div style="font-size:0.85rem;">Try a different filter or check back later</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/script.js"></script>
+<script>
+  let allQuests = [];
+  let completedIds = [];
+  let currentFilter = 'all';
+
+  const questColors = {
+    daily: 'var(--saffron)',
+    weekly: 'var(--teal)',
+    special: 'var(--purple)'
+  };
+
+  const difficultyConfig = {
+    easy: { color: 'badge-green', label: 'Easy' },
+    medium: { color: 'badge-saffron', label: 'Medium' },
+    hard: { color: 'badge-purple', label: 'Hard' }
+  };
+
+  const categoryIcons = {
+    heritage: 'fa-landmark', food: 'fa-utensils', stories: 'fa-book-open',
+    festivals: 'fa-star-and-crescent', exploration: 'fa-map', default: 'fa-trophy'
+  };
+
+  function init() {
+    const user = getUser();
+    if (user) {
+      document.getElementById('sidebarName').textContent = user.name;
+      document.getElementById('sidebarAvatar').textContent = user.name.charAt(0).toUpperCase();
+      document.getElementById('sidebarLevel').textContent = 'Level ' + user.level + ' Explorer';
+      document.getElementById('userXpDisplay').textContent = user.xp + ' XP';
+      document.getElementById('totalXp').textContent = user.xp;
+      document.getElementById('streakCount').textContent = user.streak || 0;
+      document.getElementById('loginNavBtn').style.display = 'none';
+      completedIds = user.completedQuests || [];
+    }
+    loadQuests();
+    initScrollReveal();
+  }
+
+  async function loadQuests() {
+    try {
+      const data = await apiFetch('/api/quests');
+      allQuests = data.data || [];
+      renderQuests(allQuests);
+    } catch (e) {
+      document.getElementById('loadingState').innerHTML = '<div style="color:var(--text-muted);font-size:0.88rem;">Failed to load quests. <button onclick="loadQuests()" style="color:var(--saffron);background:none;border:none;cursor:pointer;font-family:var(--font-ui);">Retry</button></div>';
+    }
+  }
+
+  function filterQuests(type, btn) {
+    currentFilter = type;
+    document.querySelectorAll('.tab-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    const filtered = type === 'all' ? allQuests : allQuests.filter(q => q.type === type);
+    renderQuests(filtered);
+  }
+
+  function renderQuests(quests) {
+    const grid = document.getElementById('questGrid');
+    const loading = document.getElementById('loadingState');
+    const empty = document.getElementById('emptyState');
+    const subtitle = document.getElementById('questSubtitle');
+
+    loading.style.display = 'none';
+
+    if (!quests.length) {
+      grid.style.display = 'none';
+      empty.style.display = 'block';
+      subtitle.textContent = '0 quests available';
+      return;
+    }
+
+    empty.style.display = 'none';
+    grid.style.display = 'grid';
+    subtitle.textContent = quests.length + ' quest' + (quests.length !== 1 ? 's' : '') + ' available';
+
+    grid.innerHTML = quests.map(q => {
+      const isCompleted = completedIds.includes(q._id);
+      const color = questColors[q.type] || 'var(--saffron)';
+      const diff = difficultyConfig[q.difficulty] || difficultyConfig.easy;
+      const icon = categoryIcons[q.category] || categoryIcons.default;
+      const tasks = q.tasks || [];
+
+      return `
+        <div class="quest-card reveal${isCompleted ? ' completed' : ''}" style="--quest-color:${color};" id="qcard-${q._id}">
+          <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;">
+            <div class="quest-icon-wrap" style="background:${color}18;">
+              <i class="fa-solid fa-${icon}" style="color:${color};"></i>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;">
+                <span style="font-family:var(--font-ui);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:${color};">${q.type}</span>
+                <span class="badge ${diff.color}">${diff.label}</span>
+                ${q.badge ? `<span class="badge badge-purple"><i class="fa-solid fa-award"></i> ${q.badge}</span>` : ''}
+              </div>
+              <h4 style="font-size:0.97rem;font-weight:700;margin-bottom:3px;font-family:var(--font-ui);">${q.title}</h4>
+              <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.5;">${q.description}</p>
+            </div>
+          </div>
+
+          ${tasks.length ? `
+            <div class="task-list">
+              ${tasks.map((t, i) => `
+                <div class="task-item">
+                  <div class="task-check${isCompleted ? ' done' : ''}">
+                    ${isCompleted ? '<i class="fa-solid fa-check" style="font-size:0.55rem;"></i>' : ''}
+                  </div>
+                  <span style="${isCompleted ? 'text-decoration:line-through;color:var(--text-muted);' : ''}">${t.title}</span>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+
+          <div style="display:flex;align-items:center;gap:8px;margin-top:16px;">
+            <div class="xp-pill"><i class="fa-solid fa-bolt"></i> +${q.xpReward} XP</div>
+            <div style="flex:1;"></div>
+            <div style="font-size:0.75rem;color:var(--text-muted);font-family:var(--font-ui);">
+              <i class="fa-solid fa-users" style="margin-right:4px;"></i>${(q.completedBy || []).length} completed
+            </div>
+          </div>
+
+          <button class="complete-btn ${isCompleted ? 'done' : 'active'}"
+            onclick="${isCompleted ? '' : `completeQuest('${q._id}', this)`}"
+            ${isCompleted ? 'disabled' : ''}>
+            ${isCompleted
+              ? '<i class="fa-solid fa-circle-check"></i> Completed'
+              : '<i class="fa-solid fa-bolt"></i> Complete Quest'}
+          </button>
+        </div>
+      `;
+    }).join('');
+
+    initScrollReveal();
+  }
+
+  async function completeQuest(questId, btn) {
+    const token = getToken();
+    if (!token) {
+      showToast('Sign in to complete quests and earn XP');
+      setTimeout(() => { window.location.href = '/login.html'; }, 1500);
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;"></div>';
+
+    try {
+      const data = await apiFetch('/api/quests/' + questId + '/complete', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+
+      if (data.success) {
+        const card = document.getElementById('qcard-' + questId);
+        card.classList.add('completed');
+        btn.className = 'complete-btn done';
+        btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Completed';
+        btn.disabled = true;
+
+        card.querySelectorAll('.task-check').forEach(el => {
+          el.classList.add('done');
+          el.innerHTML = '<i class="fa-solid fa-check" style="font-size:0.55rem;"></i>';
+        });
+
+        // Update displayed XP
+        const xpDisplay = document.getElementById('userXpDisplay');
+        const totalXp = document.getElementById('totalXp');
+        const newXp = data.data.xp;
+        xpDisplay.textContent = newXp + ' XP';
+        totalXp.textContent = newXp;
+
+        // Update stored user
+        const user = getUser();
+        if (user) {
+          user.xp = newXp;
+          user.level = data.data.level;
+          localStorage.setItem('er_user', JSON.stringify(user));
+        }
+
+        showToast(data.message || 'Quest completed!');
+      } else {
+        showToast(data.message || 'Already completed');
+        btn.className = 'complete-btn done';
+        btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Completed';
+      }
+    } catch (e) {
+      showToast('Failed to complete quest. Try again.');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Complete Quest';
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
