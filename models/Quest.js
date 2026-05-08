@@ -46,6 +46,18 @@ const questSchema = new mongoose.Schema({
   expiresAt: {
     type: Date
   },
+  location: {
+    name: { type: String, default: '' },
+    coords: {
+      lat: { type: Number },
+      lng: { type: Number }
+    }
+  },
+  linkedEvent: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Event',
+    default: null
+  },
   completedBy: [
     { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
   ]

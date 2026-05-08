@@ -40,7 +40,9 @@ const eventSchema = new mongoose.Schema({
     default: ''
   },
   organizers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  coOrganizerNames: [{ type: String }],
   status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+  isFeatured: { type: Boolean, default: false },
   rejectionReason: { type: String, default: '' },
   commentsOpen: { type: Boolean, default: true },
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

@@ -23,6 +23,11 @@ const storySchema = new mongoose.Schema({
     type: String,
     default: 'EchoRoots AI'
   },
+  authorUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
   audioUrl: {
     type: String,
     default: ''
@@ -35,6 +40,7 @@ const storySchema = new mongoose.Schema({
   readBy: [
     { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
   ],
+  shareCount: { type: Number, default: 0 },
   duration: {
     type: Number,
     default: 3,

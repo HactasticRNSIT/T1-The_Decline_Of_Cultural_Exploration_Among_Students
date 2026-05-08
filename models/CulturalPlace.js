@@ -15,6 +15,7 @@ const culturalPlaceSchema = new mongoose.Schema({
     enum: ['heritage', 'museum', 'food', 'festival', 'hidden_gem', 'temple', 'art'],
     default: 'heritage'
   },
+  isFeatured: { type: Boolean, default: false },
   location: {
     address: { type: String, default: '' },
     city:    { type: String, default: '' },

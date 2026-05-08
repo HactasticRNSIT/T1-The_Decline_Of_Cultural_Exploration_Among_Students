@@ -24,7 +24,22 @@ const userSchema = new mongoose.Schema({
       lng: { type: Number }
     }
   },
-  role: { type: String, enum: ['student', 'admin'], default: 'student' }
+  isVerified: { type: Boolean, default: false },
+  socialLinks: {
+    instagram: { type: String, default: '' },
+    twitter:   { type: String, default: '' },
+    website:   { type: String, default: '' }
+  },
+  role: { type: String, enum: ['student', 'admin', 'expert'], default: 'student' },
+  savedPlaces: [{ type: mongoose.Schema.Types.ObjectId, ref: 'CulturalPlace' }],
+  savedStories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Story' }],
+  followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  preferences: {
+    theme: { type: String, enum: ['light', 'dark', 'system'], default: 'system' },
+    notifications: { type: Boolean, default: true },
+    language: { type: String, default: 'en' }
+  }
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {
